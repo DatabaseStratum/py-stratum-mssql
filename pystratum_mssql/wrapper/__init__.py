@@ -1,4 +1,5 @@
 from pystratum_mssql.wrapper.FunctionsWrapper import FunctionsWrapper
+from pystratum_mssql.wrapper.LogWrapper import LogWrapper
 from pystratum_mssql.wrapper.NoneWrapper import NoneWrapper
 from pystratum_mssql.wrapper.Row0Wrapper import Row0Wrapper
 from pystratum_mssql.wrapper.Row1Wrapper import Row1Wrapper
@@ -8,10 +9,8 @@ from pystratum_mssql.wrapper.RowsWrapper import RowsWrapper
 from pystratum_mssql.wrapper.Singleton0Wrapper import Singleton0Wrapper
 from pystratum_mssql.wrapper.Singleton1Wrapper import Singleton1Wrapper
 
-from mssql.wrapper.LogWrapper import LogWrapper
 
-
-classdef create_routine_wrapper(routine, lob_as_string_flag):
+def create_routine_wrapper(routine, lob_as_string_flag):
     """
     A factory for creating the appropriate object for generating a wrapper method for a stored routine.
     
@@ -51,4 +50,4 @@ classdef create_routine_wrapper(routine, lob_as_string_flag):
 
     return wrapper
 
-# ----------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------------------------------

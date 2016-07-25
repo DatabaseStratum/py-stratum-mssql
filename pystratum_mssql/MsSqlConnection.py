@@ -5,8 +5,10 @@ Copyright 2015-2016 Set Based IT Consultancy
 
 Licence MIT
 """
-from mssql.StaticDataLayer import StaticDataLayer
+
 from pystratum import Connection
+
+from pystratum_mssql.StaticDataLayer import StaticDataLayer
 
 
 class MsSqlConnection(Connection.Connection):
