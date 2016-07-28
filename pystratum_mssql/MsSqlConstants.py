@@ -264,7 +264,7 @@ where  nullif(tab.[{5!s}],'') is not null""".format(table['id'],
 
         :param dict column: Info about the column.
 
-        :rtype int:
+        :rtype: int
         """
         data_type = column['data_type']
 
