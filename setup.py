@@ -11,7 +11,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='PyStratum-MSSQL',
 
-    version='0.9.22',
+    version='0.9.23',
 
     description='A stored procedure and function loader, wrapper generator for SQL Server',
     long_description=long_description,
@@ -41,7 +41,7 @@ setup(
 
     keywords='stored procedure, stored procedures, wrapper, loader, SQL Server',
 
-    packages=find_packages(exclude=['build', 'test']),
+    packages=find_packages(exclude=['build', 'pystratum_test']),
 
     install_requires=['pymssql', 'pystratum>=0.10.17'],
 )
