@@ -1,9 +1,5 @@
 """
 PyStratum
-
-Copyright 2015-2016 Set Based IT Consultancy
-
-Licence MIT
 """
 from pystratum.RoutineWrapperGenerator import RoutineWrapperGenerator
 
@@ -13,16 +9,18 @@ from pystratum_mssql.wrapper import create_routine_wrapper
 
 class MsSqlRoutineWrapperGenerator(MsSqlConnection, RoutineWrapperGenerator):
     """
-    Class for generating a class with wrapper methods for calling stored routines in a MySQL database.
+    Class for generating a class with wrapper methods for calling stored routines in a SQL Server database.
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self):
+    def __init__(self, io):
         """
         Object constructor.
+
+        :param pystratum.style.PyStratumStyle.PyStratumStyle io: The output decorator.
         """
-        MsSqlConnection.__init__(self)
-        RoutineWrapperGenerator.__init__(self)
+        MsSqlConnection.__init__(self, io)
+        RoutineWrapperGenerator.__init__(self, io)
 
     # ------------------------------------------------------------------------------------------------------------------
     def _read_configuration_file(self, config_filename):

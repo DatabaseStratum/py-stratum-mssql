@@ -1,50 +1,44 @@
-from pystratum_mssql.wrapper.FunctionsWrapper import FunctionsWrapper
-from pystratum_mssql.wrapper.LogWrapper import LogWrapper
-from pystratum_mssql.wrapper.NoneWrapper import NoneWrapper
-from pystratum_mssql.wrapper.Row0Wrapper import Row0Wrapper
-from pystratum_mssql.wrapper.Row1Wrapper import Row1Wrapper
-from pystratum_mssql.wrapper.RowsWithIndexWrapper import RowsWithIndexWrapper
-from pystratum_mssql.wrapper.RowsWithKeyWrapper import RowsWithKeyWrapper
-from pystratum_mssql.wrapper.RowsWrapper import RowsWrapper
-from pystratum_mssql.wrapper.Singleton0Wrapper import Singleton0Wrapper
-from pystratum_mssql.wrapper.Singleton1Wrapper import Singleton1Wrapper
+from pystratum_mssql.wrapper.MsSqlFunctionsWrapper import MsSqlFunctionsWrapper
+from pystratum_mssql.wrapper.MsSqlLogWrapper import MsSqlLogWrapper
+from pystratum_mssql.wrapper.MsSqlNoneWrapper import MsSqlNoneWrapper
+from pystratum_mssql.wrapper.MsSqlRow0Wrapper import MsSqlRow0Wrapper
+from pystratum_mssql.wrapper.MsSqlRow1Wrapper import MsSqlRow1Wrapper
+from pystratum_mssql.wrapper.MsSqlRowsWithIndexWrapper import MsSqlRowsWithIndexWrapper
+from pystratum_mssql.wrapper.MsSqlRowsWithKeyWrapper import MsSqlRowsWithKeyWrapper
+from pystratum_mssql.wrapper.MsSqlRowsWrapper import MsSqlRowsWrapper
+from pystratum_mssql.wrapper.MsSqlSingleton0Wrapper import MsSqlSingleton0Wrapper
+from pystratum_mssql.wrapper.MsSqlSingleton1Wrapper import MsSqlSingleton1Wrapper
 
 
 def create_routine_wrapper(routine, lob_as_string_flag):
     """
     A factory for creating the appropriate object for generating a wrapper method for a stored routine.
     
-    :param dict[str,str] routine: The metadata of the sored routine.
+    :param dict[str,str] routine: The metadata of the sored routine. 
     :param bool lob_as_string_flag: If True BLOBs and CLOBs must be treated as strings.
 
     :rtype: pystratum.mssql.wrapper.MsSqlWrapper.MsSqlWrapper
     """
     if routine['designation'] == 'none':
-        wrapper = NoneWrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlNoneWrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'row0':
-        wrapper = Row0Wrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlRow0Wrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'row1':
-        wrapper = Row1Wrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlRow1Wrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'rows':
-        wrapper = RowsWrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlRowsWrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'rows_with_index':
-        wrapper = RowsWithIndexWrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlRowsWithIndexWrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'rows_with_key':
-        wrapper = RowsWithKeyWrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlRowsWithKeyWrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'singleton0':
-        wrapper = Singleton0Wrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlSingleton0Wrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'singleton1':
-        wrapper = Singleton1Wrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlSingleton1Wrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'function':
-        wrapper = FunctionsWrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlFunctionsWrapper(routine, lob_as_string_flag)
     elif routine['designation'] == 'log':
-        wrapper = LogWrapper(routine, lob_as_string_flag)
-    # elif routine['designation'] == 'table':
-    #     wrapper = TableWrapper(routine, lob_as_string_flag)
-    # elif routine['designation'] == 'bulk':
-    #     wrapper = BulkWrapper(routine, lob_as_string_flag)
-    # elif routine['designation'] == 'bulk_insert':
-    #     wrapper = BulkInsertWrapper(routine, lob_as_string_flag)
+        wrapper = MsSqlLogWrapper(routine, lob_as_string_flag)
     else:
         raise Exception("Unknown routine type '{0!s}'.".format(routine['designation']))
 

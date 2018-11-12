@@ -16,9 +16,9 @@ setup(
     description='A stored procedure and function loader, wrapper generator for SQL Server',
     long_description=long_description,
 
-    url='https://github.com/SetBased/py-stratum',
+    url='https://github.com/SetBased/py-stratum-mssql',
 
-    author='Paul Water, Valery Zuban',
+    author='Set Based IT Consultancy',
     author_email='info@setbased.nl',
 
     license='MIT',
@@ -34,20 +34,14 @@ setup(
         'License :: OSI Approved :: MIT License',
 
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 
     keywords='stored procedure, stored procedures, wrapper, loader, SQL Server',
 
     packages=find_packages(exclude=['build', 'test']),
 
-    install_requires=['cleo==0.4.1', 'pymssql', 'pystratum'],
-
-    entry_points={
-        'console_scripts': [
-            'pystratum = pystratum:main',
-        ],
-    }
+    install_requires=['pymssql', 'pystratum>=0.10.17'],
 )

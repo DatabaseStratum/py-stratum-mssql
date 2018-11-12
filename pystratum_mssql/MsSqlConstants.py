@@ -1,9 +1,5 @@
 """
 PyStratum
-
-Copyright 2015-2016 Set Based IT Consultancy
-
-Licence MIT
 """
 import os
 import re
@@ -12,22 +8,31 @@ from pystratum.Constants import Constants
 from pystratum.Util import Util
 
 from pystratum_mssql.MsSqlConnection import MsSqlConnection
-from pystratum_mssql.StaticDataLayer import StaticDataLayer
+from pystratum_mssql.MsSqlMetadataDataLayer import MsSqlMetadataDataLayer
 
 
 class MsSqlConstants(MsSqlConnection, Constants):
     """
-    Class for creating constants based on column widths, and auto increment columns and labels for MS SQL Server
+    Class for creating constants based on column widths, and auto increment columns and labels for SQL Server
     databases.
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self):
+    def __init__(self, io):
         """
         Object constructor.
+
+        :param pystratum.style.PyStratumStyle.PyStratumStyle io: The output decorator.
         """
-        Constants.__init__(self)
-        MsSqlConnection.__init__(self)
+        Constants.__init__(self, io)
+        MsSqlConnection.__init__(self, io)
+
+        self._columns = {}
+        """
+        All columns in the database.
+
+        :type: dict
+        """
 
     # ------------------------------------------------------------------------------------------------------------------
     def _get_old_columns(self):
@@ -79,34 +84,9 @@ class MsSqlConstants(MsSqlConnection, Constants):
     # ------------------------------------------------------------------------------------------------------------------
     def _get_columns(self):
         """
-        Retrieves metadata all columns in the MySQL schema.
+        Retrieves metadata all columns in the database.
         """
-        query = """
-select scm.name                   schema_name
-,      tab.name                   table_name
-,      col.name                   column_name
-,      isnull(stp.name,utp.name)  data_type
-,      col.max_length
-,      col.precision
-,      col.scale
-,      col.column_id
-from            sys.columns col
-inner join      sys.types   utp  on  utp.user_type_id = col.user_type_id and
-                                     utp.system_type_id = col.system_type_id
-left outer join sys.types   stp  on  utp.is_user_defined = 1 and
-                                     stp.is_user_defined = 0 and
-                                     utp.system_type_id = stp.system_type_id and
-                                     utp.user_type_id <> stp.user_type_id  and
-                                     stp.user_type_id = stp.system_type_id
-inner join      sys.tables  tab  on  col.object_id = tab.object_id
-inner join      sys.schemas scm  on  tab.schema_id = scm.schema_id
-where tab.type in ('U','S','V')
-order by  scm.name
-,         tab.name
-,         col.column_id"""
-
-        rows = StaticDataLayer.execute_rows(query)
-
+        rows = MsSqlMetadataDataLayer.get_all_table_columns()
         for row in rows:
             row['length'] = MsSqlConstants.derive_field_length(row)
 
@@ -138,8 +118,8 @@ order by  scm.name
                                 self._old_columns[schema_name][table_name][column_name]['constant_name'] = constant_name
                             else:
                                 constant_name = str(
-                                    self._old_columns[schema_name][table_name][column_name][
-                                        'constant_name']).upper()
+                                        self._old_columns[schema_name][table_name][column_name][
+                                            'constant_name']).upper()
                                 self._old_columns[schema_name][table_name][column_name]['constant_name'] = constant_name
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -157,8 +137,8 @@ order by  scm.name
                                     column['constant_name']
                             except KeyError:
                                 # Either the column or table is not present anymore.
-                                print('Dropping constant {1} because column is not present anymore'.
-                                      format(column['constant_name']))
+                                self._io.warning('Dropping constant {0} because column is not present anymore'.
+                                                 format(column['constant_name']))
 
     # ------------------------------------------------------------------------------------------------------------------
     def _write_columns(self):
@@ -198,43 +178,23 @@ order by  scm.name
                 content += "\n"""
 
         # Save the columns, width, and constants to the filesystem.
-        Util.write_two_phases(self._constants_filename, content)
+        Util.write_two_phases(self._constants_filename, content, self._io)
 
     # ------------------------------------------------------------------------------------------------------------------
     def _get_labels(self, regex):
         """
-        Gets all primary key labels from the MySQL database.
+        Gets all primary key labels from the database.
 
         :param str regex: The regular expression for columns which we want to use.
         """
-        query_string = """
-select scm.name  schema_name
-,      tab.name  table_name
-,      cl1.name  label
-,      cl2.name  id
-from       sys.schemas     scm
-inner join sys.tables      tab  on  tab.[schema_id] = scm.[schema_id]
-inner join sys.all_columns cl1  on  cl1.[object_id] = tab.[object_id]
-inner join sys.all_columns cl2  on  cl2.[object_id] = tab.[object_id]
-where cl1.name like '{0}'
-and   cl2.name like '%_id'
-and   cl2.is_identity = 1""".format(regex)
-
-        tables = StaticDataLayer.execute_rows(query_string)
+        tables = MsSqlMetadataDataLayer.get_label_tables(regex)
 
         for table in tables:
-            query_string = """
-select tab.[{0!s}] id
-,      tab.[{1!s}] label
-from   [{2!s}].[{3!s}].[{4!s}] tab
-where  nullif(tab.[{5!s}],'') is not null""".format(table['id'],
-                                                    table['label'],
-                                                    self._database,
-                                                    table['schema_name'],
-                                                    table['table_name'],
-                                                    table['label'])
-
-            rows = StaticDataLayer.execute_rows(query_string)
+            rows = MsSqlMetadataDataLayer.get_labels_from_table(self._database,
+                                                                table['schema_name'],
+                                                                table['table_name'],
+                                                                table['id'],
+                                                                table['label'])
             for row in rows:
                 if row['label'] not in self._labels:
                     self._labels[row['label']] = row['id']
@@ -367,7 +327,7 @@ where  nullif(tab.[{5!s}],'') is not null""".format(table['id'],
                 # This is a varchar(max) data type.
                 return 2147483647
 
-        raise Exception("Unexpected data type '{0!s}'".format(data_type))
+        raise Exception("Unexpected data type '{0}'".format(data_type))
 
     # ------------------------------------------------------------------------------------------------------------------
     def _read_configuration_file(self, config_filename):

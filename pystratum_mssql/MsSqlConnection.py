@@ -1,24 +1,26 @@
 """
 PyStratum
-
-Copyright 2015-2016 Set Based IT Consultancy
-
-Licence MIT
 """
+from pystratum.Connection import Connection
+from pystratum.MetadataDataLayer import MetadataDataLayer
 
-from pystratum import Connection
-
-from pystratum_mssql.StaticDataLayer import StaticDataLayer
+from pystratum_mssql.MsSqlMetadataDataLayer import MsSqlMetadataDataLayer
 
 
-class MsSqlConnection(Connection.Connection):
+class MsSqlConnection(Connection):
     """
     Class for connecting to SQL Server instances and reading SQl Server specific connection parameters from
     configuration files.
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self):
+    def __init__(self, io):
+        """
+        Object constructor.
+
+        :param pystratum.style.PyStratumStyle.PyStratumStyle io: The output decorator.
+        """
+        Connection.__init__(self, io)
         """
         Object constructor.
         """
@@ -55,10 +57,11 @@ class MsSqlConnection(Connection.Connection):
         """
         Connects to the database.
         """
-        StaticDataLayer.connect(self._host,
-                                self._user,
-                                self._password,
-                                self._database)
+        MetadataDataLayer.io = self._io
+        MsSqlMetadataDataLayer.connect(self._host,
+                                       self._user,
+                                       self._password,
+                                       self._database)
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
@@ -66,7 +69,7 @@ class MsSqlConnection(Connection.Connection):
         """
         Disconnects from the database.
         """
-        StaticDataLayer.disconnect()
+        MsSqlMetadataDataLayer.disconnect()
 
     # ------------------------------------------------------------------------------------------------------------------
     def _read_configuration_file(self, filename):

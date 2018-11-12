@@ -1,9 +1,5 @@
 """
 PyStratum
-
-Copyright 2015-2016 Set Based IT Consultancy
-
-Licence MIT
 """
 import abc
 
@@ -61,7 +57,7 @@ class MsSqlWrapper(Wrapper):
                 if parameter_info['data_type'] in lookup:
                     has_blob = lookup[parameter_info['data_type']]
                 else:
-                    print("Unknown SQL type '{0!s}'.".format(parameter_info['data_type']))
+                    raise Exception("Unexpected date type '{0}'".format(parameter_info['data_type']))
 
         return has_blob
 
@@ -167,7 +163,7 @@ class MsSqlWrapper(Wrapper):
         if data_type in lookup:
             return '%s'
 
-        raise Exception('Unexpected data type {0!s}.'.format(data_type))
+        raise Exception('Unexpected data type {0}'.format(data_type))
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
@@ -208,6 +204,6 @@ class MsSqlWrapper(Wrapper):
         if data_type in templates:
             return templates[data_type]
 
-        raise Exception('Unexpected data type {0!s}.'.format(data_type))
+        raise Exception('Unexpected data type {0}'.format(data_type))
 
 # ----------------------------------------------------------------------------------------------------------------------

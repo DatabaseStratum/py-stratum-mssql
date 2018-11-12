@@ -1,21 +1,15 @@
+filter:
+    excluded_paths:
+        - pystratum_test/*
+
 before_commands:
-    - pip3 install cleo
+    - sudo pip3 install cleo
+    - sudo pip3 install coverage
+    - sudo pip3 install pystratum
 
 build:
     dependencies:
         before:
           - pip3 install cleo
           - pip3 install coverage
-
-    tests:
-        before:
-          - mysql
-
-        override:
-            -
-
-                coverage:
-                    file: '.coverage'
-                    config_file: '.coveragerc'
-                    format: 'py-cc'
-
+          - pip3 install pystratum

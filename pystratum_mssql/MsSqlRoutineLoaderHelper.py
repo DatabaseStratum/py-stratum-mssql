@@ -1,16 +1,13 @@
 """
 PyStratum
-
-Copyright 2015-2016 Set Based IT Consultancy
-
-Licence MIT
 """
 import re
-import sys
 
 from pystratum.RoutineLoaderHelper import RoutineLoaderHelper
+from pystratum.exception.LoaderException import LoaderException
 
-from pystratum_mssql.StaticDataLayer import StaticDataLayer
+from pystratum_mssql.MsSqlMetadataDataLayer import MsSqlMetadataDataLayer
+from pystratum_mssql.helper.MsSqlDataTypeHelper import MsSqlDataTypeHelper
 
 
 class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
@@ -24,7 +21,8 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
                  routine_file_encoding,
                  pystratum_old_metadata,
                  replace_pairs,
-                 rdbms_old_metadata):
+                 rdbms_old_metadata,
+                 io):
         """
         Object constructor.
 
@@ -33,13 +31,15 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         :param dict pystratum_old_metadata: The metadata of the stored routine from PyStratum.
         :param dict[str,str] replace_pairs: A map from placeholders to their actual values.
         :param dict rdbms_old_metadata: The old metadata of the stored routine from MS SQL Server.
+        :param pystratum.style.PyStratumStyle.PyStratumStyle io: The output decorator.
         """
         RoutineLoaderHelper.__init__(self,
                                      routine_filename,
                                      routine_file_encoding,
                                      pystratum_old_metadata,
                                      replace_pairs,
-                                     rdbms_old_metadata)
+                                     rdbms_old_metadata,
+                                     io)
 
         self._routines_schema_name = None
         """
@@ -82,11 +82,8 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
     def _get_name(self):
         """
         Extracts the name of the stored routine and the stored routine type (i.e. procedure or function) source.
-
-        :rtype: bool
         """
-        ret = True
-        p = re.compile(r"create\\s+(procedure|function)\\s+(?:(\w+)\.([a-zA-Z0-9_]+))", re.IGNORECASE)
+        p = re.compile(r"create\s+(procedure|function)\s+(?:(\w+)\.([a-zA-Z0-9_]+))", re.IGNORECASE)
         matches = p.findall(self._routine_source_code)
 
         if matches:
@@ -94,24 +91,42 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
             self._routines_schema_name = matches[0][1]
             self._routine_base_name = matches[0][2]
 
-            if self._routine_name != matches[0][1] + '.' + matches[0][2]:
-                print("Error: Stored routine name '%s.%s' does not match filename in file '%s'." % (
-                    matches[0][1], matches[0][2], self._source_filename))
-                ret = False
-        else:
-            ret = False
+            if self._routine_name != (matches[0][1] + '.' + matches[0][2]):
+                raise LoaderException(
+                        'Stored routine name {0}.{1} does not match filename in file {2}'.format(matches[0][1],
+                                                                                                 matches[0][2],
+                                                                                                 self._source_filename))
 
         if not self._routine_type:
-            print("Error: Unable to find the stored routine name and type in file '%s'." % self._source_filename)
+            raise LoaderException('Unable to find the stored routine name and type in file {0}'.
+                                  format(self._source_filename))
 
-        return ret
+    # ------------------------------------------------------------------------------------------------------------------
+    def _get_data_type_helper(self):
+        """
+        Returns a data type helper object for SQL Server.
+
+        :rtype: pystratum.helper.DataTypeHelper.DataTypeHelper
+        """
+        return MsSqlDataTypeHelper()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def _is_start_or_store_routine(self, line):
+        """
+        Returns True if a line is the start of the code of the stored routine.
+
+        :param str line: The line with source code of the stored routine.
+
+        :rtype: bool
+        """
+        return re.match(r'^\s*create\s+(procedure|function)', line) is not None
 
     # ------------------------------------------------------------------------------------------------------------------
     def _load_routine_file(self):
         """
         Loads the stored routine into the SQL Server instance.
         """
-        print("Loading %s %s" % (self._routine_type, self._routine_name))
+        self._io.text('Loading {0} <dbo>{1}</dbo>'.format(self._routine_type, self._routine_name))
 
         self._set_magic_constants()
 
@@ -139,47 +154,38 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
                 if matches:
                     routine_source = routine_source.replace(matches[0][0], 'alter %s' % matches[0][1])
                 else:
-                    print("Error: Unable to find the stored routine type in modified source of file '%s'." %
-                          self._source_filename)
+                    raise LoaderException("Unable to find the stored routine type in modified source of file '{0}'".
+                                          format(self._source_filename))
             else:
                 self._drop_routine()
 
-        StaticDataLayer.execute_none(routine_source)
+        MsSqlMetadataDataLayer.execute_none(routine_source)
 
     # ------------------------------------------------------------------------------------------------------------------
-    def get_bulk_insert_table_columns_info(self):
+    def _get_bulk_insert_table_columns_info(self):
         """
         Gets the column names and column types of the current table for bulk insert.
         """
-        pass
+        raise NotImplementedError()
 
     # ------------------------------------------------------------------------------------------------------------------
     def _get_routine_parameters_info(self):
-        query = """
-select par.name      parameter_name
-,      typ.name      type_name
-,      typ.max_length
-,      typ.precision
-,      typ.scale
-from       sys.schemas        scm
-inner join sys.all_objects    prc  on  prc.[schema_id] = scm.[schema_id]
-inner join sys.all_parameters par  on  par.[object_id] = prc.[object_id]
-inner join sys.types          typ  on  typ.user_type_id = par.system_type_id
-where scm.name = '%s'
-and   prc.name = '%s'
-order by par.parameter_id""" % (self._routines_schema_name, self._routine_base_name)
-
-        routine_parameters = StaticDataLayer.execute_rows(query)
-
+        """
+        Retrieves information about the stored routine parameters from the meta data of SQL Server.
+        """
+        routine_parameters = MsSqlMetadataDataLayer.get_routine_parameters(self._routines_schema_name,
+                                                                           self._routine_base_name)
         if len(routine_parameters) != 0:
             for routine_parameter in routine_parameters:
                 if routine_parameter['parameter_name']:
                     parameter_name = routine_parameter['parameter_name'][1:]
                     value = routine_parameter['type_name']
 
-                    self._parameters.append({'name':                       parameter_name,
-                                             'data_type': routine_parameter['type_name'],
-                                             'data_type_descriptor':       value})
+                    self._parameters.append({'name':                 parameter_name,
+                                             'data_type':            routine_parameter['type_name'],
+                                             'numeric_precision':    routine_parameter['precision'],
+                                             'numeric_scale':        routine_parameter['scale'],
+                                             'data_type_descriptor': value})
 
     # ------------------------------------------------------------------------------------------------------------------
     def _get_designation_type(self):
@@ -206,8 +212,8 @@ order by par.parameter_id""" % (self._routines_schema_name, self._routine_base_n
                     info = n.findall(tmp)
 
                     if not info:
-                        print("Error: Expected: -- type: bulk_insert <table_name> <columns> in file '%s'." %
-                              self._source_filename, file=sys.stderr)
+                        raise LoaderException('Expected: -- type: bulk_insert <table_name> <columns> in file {0}'.
+                                              format(self._source_filename))
                     self._table_name = info[0][0]
                     self._columns = str(info[0][1]).split(',')
 
@@ -220,8 +226,8 @@ order by par.parameter_id""" % (self._routines_schema_name, self._routine_base_n
             ret = False
 
         if not ret:
-            print("Error: Unable to find the designation type of the stored routine in file '%s'." %
-                  self._source_filename, file=sys.stderr)
+            raise LoaderException("Unable to find the designation type of the stored routine in file {0}".
+                                  format(self._source_filename))
 
         return ret
 
@@ -231,14 +237,16 @@ order by par.parameter_id""" % (self._routines_schema_name, self._routine_base_n
         Drops the stored routine if it exists.
         """
         if self._rdbms_old_metadata:
-            if self._rdbms_old_metadata['type'].strip() == 'P':
-                sql = "drop procedure [%s].[%s]" % (self._rdbms_old_metadata['schema_name'], self._routine_base_name)
-            elif self._rdbms_old_metadata['type'].strip() in ('FN', 'TF'):
-                sql = "drop function [%s].[%s]" % (self._rdbms_old_metadata['schema_name'], self._routine_base_name)
+            if self._rdbms_old_metadata['routine_type'].strip() == 'P':
+                routine_type = 'procedure'
+            elif self._rdbms_old_metadata['routine_type'].strip() in ('FN', 'TF'):
+                routine_type = 'function'
             else:
-                raise Exception("Unknown routine type '%s'." % self._rdbms_old_metadata['type'])
-
-            StaticDataLayer.execute_none(sql)
+                raise Exception("Unknown routine type '{0}'.".format(self._rdbms_old_metadata['routine_type']))
+            
+            MsSqlMetadataDataLayer.drop_stored_routine(routine_type,
+                                                       self._rdbms_old_metadata['schema_name'],
+                                                       self._routine_base_name)
 
     # ------------------------------------------------------------------------------------------------------------------
     def _update_metadata(self):
