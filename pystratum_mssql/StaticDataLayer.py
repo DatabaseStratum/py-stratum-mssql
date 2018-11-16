@@ -7,6 +7,8 @@ import re
 import sys
 from time import strftime, gmtime
 
+from pystratum.exception.ResultException import ResultException
+
 
 class StaticDataLayer:
     """
@@ -64,9 +66,9 @@ class StaticDataLayer:
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def connect(server, user, password, database):
+    def connect(**kwargs):
         # Connect to the SQL-Server
-        StaticDataLayer.__conn = pymssql.connect(server, user, password, database)
+        StaticDataLayer.__conn = pymssql.connect(**kwargs)
 
         # Install our own message handler.
         StaticDataLayer.__conn._conn.set_msghandler(StaticDataLayer.my_msg_handler)
@@ -84,86 +86,6 @@ class StaticDataLayer:
     @staticmethod
     def disconnect():
         StaticDataLayer.__conn.close()
-
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_none(sql, *params):
-        cursor = StaticDataLayer.__conn.cursor()
-        cursor.execute(sql, params)
-        cursor.close()
-
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_rows(sql, *params):
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
-        cursor.execute(sql, params)
-        rows = cursor.fetchall()
-        cursor.close()
-
-        return rows
-
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_row0(sql, *params):
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
-        cursor.execute(sql, params)
-        rows = cursor.fetchall()
-        cursor.close()
-
-        n = len(rows)
-        if n == 1:
-            return rows[0]
-        elif n == 0:
-            return None
-        else:
-            raise Exception("Number of rows selected by query below is %d. Expected 0 or 1.\n%s" %
-                            (n, sql))
-
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_row1(sql, *params):
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
-        cursor.execute(sql, params)
-        rows = cursor.fetchall()
-        cursor.close()
-
-        n = len(rows)
-        if n != 1:
-            raise Exception("Number of rows selected by query below is %d. Expected 1.\n%s" %
-                            (n, sql))
-
-        return rows[0]
-
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_singleton0(sql, *params):
-        cursor = StaticDataLayer.__conn.cursor()
-        cursor.execute(sql, params)
-        rows = cursor.fetchall()
-        cursor.close()
-
-        n = len(rows)
-        if n == 1:
-            return rows[0][0]
-        elif n == 0:
-            return None
-        else:
-            raise Exception("Number of rows selected by query below is %d. Expected 0 or 1.\n%s" % (n, sql))
-
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_singleton1(sql, *params):
-        cursor = StaticDataLayer.__conn.cursor()
-        cursor.execute(sql, params)
-        rows = cursor.fetchall()
-        cursor.close()
-
-        n = len(rows)
-        if n != 1:
-            raise Exception("Number of rows selected by query below is %d. Expected 1.\n%s" %
-                            (n, sql))
-
-        return rows[0][0]
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
@@ -210,6 +132,160 @@ class StaticDataLayer:
         cursor.close()
 
         return n
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_none(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor()
+        cursor.execute(sql, *params)
+        cursor.close()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_row0(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor.execute(sql, *params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        n = len(rows)
+        if n == 1:
+            return rows[0]
+        elif n == 0:
+            return None
+        else:
+            raise ResultException('0 or 1', n, sql)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_row1(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor.execute(sql, *params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        n = len(rows)
+        if n != 1:
+            raise ResultException('1', n, sql)
+
+        return rows[0]
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_rows(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor.execute(sql, *params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        return rows
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_singleton0(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor()
+        cursor.execute(sql, *params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        n = len(rows)
+        if n == 1:
+            return rows[0][0]
+        elif n == 0:
+            return None
+        else:
+            raise ResultException('0 or 1', n, sql)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_singleton1(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor()
+        cursor.execute(sql, *params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        n = len(rows)
+        if n != 1:
+            raise ResultException('1', n, sql)
+
+        return rows[0][0]
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_sp_none(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor()
+        cursor.execute(sql, params)
+        cursor.close()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_sp_row0(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor.execute(sql, params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        n = len(rows)
+        if n == 1:
+            return rows[0]
+        elif n == 0:
+            return None
+        else:
+            raise ResultException('0 or 1', n, sql)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_sp_row1(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor.execute(sql, params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        n = len(rows)
+        if n != 1:
+            raise ResultException('1', n, sql)
+
+        return rows[0]
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_sp_rows(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor.execute(sql, params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        return rows
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_sp_singleton0(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor()
+        cursor.execute(sql, params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        n = len(rows)
+        if n == 1:
+            return rows[0][0]
+        elif n == 0:
+            return None
+        else:
+            raise ResultException('0 or 1', n, sql)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def execute_sp_singleton1(sql, *params):
+        cursor = StaticDataLayer.__conn.cursor()
+        cursor.execute(sql, params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        n = len(rows)
+        if n != 1:
+            raise ResultException('1', n, sql)
+
+        return rows[0][0]
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod

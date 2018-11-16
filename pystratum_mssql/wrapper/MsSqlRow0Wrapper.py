@@ -13,6 +13,6 @@ class MsSqlRow0Wrapper(MsSqlWrapper, Row0Wrapper):
 
     # ------------------------------------------------------------------------------------------------------------------
     def _write_result_handler(self, routine):
-        self._write_line('return StaticDataLayer.execute_row0({0})'.format(self._generate_command(routine)))
+        self._write_line('return StaticDataLayer.execute_sp_row0({0})'.format(self._generate_command(routine)))
 
 # ----------------------------------------------------------------------------------------------------------------------

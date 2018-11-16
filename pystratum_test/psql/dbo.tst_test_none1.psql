@@ -1,0 +1,10 @@
+/**
+ * Test for designation type none.
+ */
+create procedure dbo.tst_test_none1
+-- type: none
+as
+  insert into [TST_LABEL]([tst_test],
+                          [tst_label])
+  values('tst_test_none1',
+         null)

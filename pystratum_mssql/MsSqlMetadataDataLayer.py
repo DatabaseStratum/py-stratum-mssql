@@ -19,12 +19,12 @@ class MsSqlMetadataDataLayer(MetadataDataLayer):
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def connect(server, user, password, database):
+    def connect(**kwargs):
         """
         Connects to a SQL Server instance.
         """
         MsSqlMetadataDataLayer.__dl = StaticDataLayer()
-        MsSqlMetadataDataLayer.__dl.connect(server, user, password, database)
+        MsSqlMetadataDataLayer.__dl.connect(**kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod

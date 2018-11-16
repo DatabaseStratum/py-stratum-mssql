@@ -13,6 +13,6 @@ class MsSqlSingleton0Wrapper(MsSqlWrapper, Singleton0Wrapper):
 
     # ------------------------------------------------------------------------------------------------------------------
     def _write_result_handler(self, routine):
-        self._write_line('return StaticDataLayer.execute_singleton0({0})'.format(self._generate_command(routine)))
+        self._write_line('return StaticDataLayer.execute_sp_singleton0({0})'.format(self._generate_command(routine)))
 
 # ----------------------------------------------------------------------------------------------------------------------

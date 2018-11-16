@@ -1,0 +1,12 @@
+/**
+ * Test for designation type none.
+ */
+create procedure dbo.tst_test_none0
+  @p_tst_test  @dbo.tst_label.tst_test%type@,
+  @p_tst_label @dbo.tst_label.tst_label%type@
+-- type: none
+as
+  insert into [TST_LABEL]([tst_test],
+                          [tst_label])
+  values(@p_tst_test,
+         @p_tst_label)

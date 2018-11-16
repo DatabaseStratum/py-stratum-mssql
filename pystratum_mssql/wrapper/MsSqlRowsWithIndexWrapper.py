@@ -13,6 +13,6 @@ class MsSqlRowsWithIndexWrapper(BaseRowsWithIndexWrapper, MsSqlWrapper):
 
     # ------------------------------------------------------------------------------------------------------------------
     def _write_execute_rows(self, routine):
-        self._write_line('rows = StaticDataLayer.execute_rows({0})'.format(self._generate_command(routine)))
+        self._write_line('rows = StaticDataLayer.execute_sp_rows({0})'.format(self._generate_command(routine)))
 
 # ----------------------------------------------------------------------------------------------------------------------

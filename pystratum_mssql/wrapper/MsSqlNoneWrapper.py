@@ -13,6 +13,6 @@ class MsSqlNoneWrapper(MsSqlWrapper, NoneWrapper):
 
     # ------------------------------------------------------------------------------------------------------------------
     def _write_result_handler(self, routine):
-        self._write_line('return StaticDataLayer.execute_none({0})'.format(self._generate_command(routine)))
+        self._write_line('return StaticDataLayer.execute_sp_none({0})'.format(self._generate_command(routine)))
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -58,10 +58,10 @@ class MsSqlConnection(Connection):
         Connects to the database.
         """
         MetadataDataLayer.io = self._io
-        MsSqlMetadataDataLayer.connect(self._host,
-                                       self._user,
-                                       self._password,
-                                       self._database)
+        MsSqlMetadataDataLayer.connect(server=self._host,
+                                       user=self._user,
+                                       password=self._password,
+                                       database=self._database)
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
