@@ -43,5 +43,5 @@ setup(
 
     packages=find_packages(exclude=['build', 'pystratum_test']),
 
-    install_requires=['pymssql', 'pystratum>=0.10.17'],
+    install_requires=['pymssql', 'pystratum>=0.10.18'],
 )
