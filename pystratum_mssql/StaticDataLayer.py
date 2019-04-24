@@ -111,6 +111,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_log(sql, *params):
+        """
+        Executes a query with log statements. Returns the number of lines in the log.
+
+        :param str sql: The SQL statement.
+        :param iterable params: The parameters.
+
+        :rtype: int
+        """
         cursor = StaticDataLayer.__conn.cursor()
         cursor.execute(sql, params)
 
@@ -134,6 +142,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_none(sql, *params):
+        """
+        Executes a query that does not select any rows.
+
+        :param str sql: The SQL statement.
+        :param iterable params: The parameters.
+
+        :rtype: None
+        """
         cursor = StaticDataLayer.__conn.cursor()
         cursor.execute(sql, *params)
         cursor.close()
@@ -141,6 +157,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_row0(sql, *params):
+        """
+        Executes a query that selects 0 or 1 row. Returns the selected row or None.
+
+        :param str sql: The SQL statement.
+        :param iterable params: The parameters.
+
+        :rtype: None|dict[str,*]
+        """
         cursor = StaticDataLayer.__conn.cursor(as_dict=True)
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
@@ -157,6 +181,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_row1(sql, *params):
+        """
+        Executes a query that selects 1 row. Returns the selected row.
+
+        :param str sql: The SQL statement.
+        :param iterable params: The parameters.
+
+        :rtype: dict[str,*]
+        """
         cursor = StaticDataLayer.__conn.cursor(as_dict=True)
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
@@ -171,6 +203,15 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_rows(sql, *params):
+        """
+        Executes a query that selects 0 or more rows. Returns the selected rows (an empty list if no rows
+        are selected).
+
+        :param str sql: The SQL statement.
+        :param iterable params: The parameters.
+
+        :rtype: list[dict[str,*]]
+        """
         cursor = StaticDataLayer.__conn.cursor(as_dict=True)
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
@@ -181,6 +222,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_singleton0(sql, *params):
+        """
+        Executes a query that selects 0 or 1 row with 1 column. Returns the value of selected column or None.
+
+        :param str sql: The SQL statement.
+        :param iterable params: The parameters.
+
+        :rtype: *
+        """
         cursor = StaticDataLayer.__conn.cursor()
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
@@ -197,6 +246,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_singleton1(sql, *params):
+        """
+        Executes a query that selects 1 row with 1 column. Returns the value of the selected column.
+
+        :param str sql:The SQL statement.
+        :param iterable params: The parameters.
+
+        :rtype: *
+        """
         cursor = StaticDataLayer.__conn.cursor()
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
@@ -211,6 +268,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_sp_none(sql, *params):
+        """
+        Executes a stored routine that does not select any rows.
+
+        :param str sql: The SQL calling the stored procedure.
+        :param iterable params: The parameters for the stored procedure.
+
+        :rtype: None
+        """
         cursor = StaticDataLayer.__conn.cursor()
         cursor.execute(sql, params)
         cursor.close()
@@ -218,6 +283,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_sp_row0(sql, *params):
+        """
+        Executes a stored procedure that selects 0 or 1 row. Returns the selected row or None.
+
+        :param str sql: The SQL call the the stored procedure.
+        :param iterable params: The parameters for the stored procedure.
+
+        :rtype: None|dict[str,*]
+        """
         cursor = StaticDataLayer.__conn.cursor(as_dict=True)
         cursor.execute(sql, params)
         rows = cursor.fetchall()
@@ -234,6 +307,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_sp_row1(sql, *params):
+        """
+        Executes a stored procedure that selects 1 row. Returns the selected row.
+
+        :param str sql: The SQL calling the the stored procedure.
+        :param iterable params: The parameters for the stored procedure.
+
+        :rtype: dict[str,*]
+        """
         cursor = StaticDataLayer.__conn.cursor(as_dict=True)
         cursor.execute(sql, params)
         rows = cursor.fetchall()
@@ -248,6 +329,15 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_sp_rows(sql, *params):
+        """
+        Executes a stored procedure that selects 0 or more rows. Returns the selected rows (an empty list if no rows
+        are selected).
+
+        :param str sql: The SQL calling the the stored procedure.
+        :param iterable params: The parameters for the stored procedure.
+
+        :rtype: list[dict[str,*]]
+        """
         cursor = StaticDataLayer.__conn.cursor(as_dict=True)
         cursor.execute(sql, params)
         rows = cursor.fetchall()
@@ -258,6 +348,14 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_sp_singleton0(sql, *params):
+        """
+        Executes a stored procedure that selects 0 or 1 row with 1 column. Returns the value of selected column or None.
+
+        :param str sql: The SQL calling the stored procedure.
+        :param iterable params: The parameters for the stored procedure.
+
+        :rtype: *
+        """
         cursor = StaticDataLayer.__conn.cursor()
         cursor.execute(sql, params)
         rows = cursor.fetchall()
@@ -274,6 +372,15 @@ class StaticDataLayer:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def execute_sp_singleton1(sql, *params):
+        """
+        Executes a stored routine with designation type "table", i.e a stored routine that is expected to select 1 row
+        with 1 column.
+
+        :param str sql: The SQL calling the the stored procedure.
+        :param iterable params: The parameters for the stored procedure.
+
+        :rtype: * The value of the selected column.
+        """
         cursor = StaticDataLayer.__conn.cursor()
         cursor.execute(sql, params)
         rows = cursor.fetchall()
@@ -284,12 +391,6 @@ class StaticDataLayer:
             raise ResultException('1', n, sql)
 
         return rows[0][0]
-
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_table(sql, *params):
-        # @todo methods for showing table
-        raise NotImplementedError
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
