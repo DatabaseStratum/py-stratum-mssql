@@ -23,9 +23,9 @@ class StaticDataLayer:
     :type: Object
     """
 
-    _suppress_bogus_messages = True
+    _suppress_superfluous_messages = True
     """
-    If set bogus messages like:
+    If set superfluous messages like below will be suppressed:
     * "Warning: Null value is eliminated by an aggregate or other SET operation."
     * The module ... depends on the missing object .... The module will still be created; however, it cannot run
       successfully until the object exists.
@@ -43,26 +43,23 @@ class StaticDataLayer:
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def my_msg_handler(msgstate, severity, srvname, procname, line, msgtext):
-        if severity > 0:
-            print("Error at line %d: %s" % (line, msgtext.decode("utf-8")), file=sys.stderr)
-        else:
-            msg = msgtext.decode("utf-8")
+    def autocommit(status):
+        """
+        Sets auto commit mode.
+        See http://pymssql.org/en/stable/ref/pymssql.html#pymssql.Connection.autocommit.
 
-            # Suppress bogus messages if flag is set.
-            if StaticDataLayer._suppress_bogus_messages:
-                # @todo Make this method more flexible by using two lists. One with strings and one on regex to
-                # suppress.
-                if msg == 'Warning: Null value is eliminated by an aggregate or other SET operation.':
-                    return
+        :param bool status: True: Auto commit on. False: Auto commit off.
+        """
+        StaticDataLayer.__conn.autocommit(status)
 
-                if re.match(
-                        "^The module \'.*\' depends on the missing object \'.*\'. The module will still be created; "
-                        "however, it cannot run successfully until the object exists.$",
-                        msg):
-                    return
-
-            print(msg)
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def commit():
+        """
+        Commits the current transaction.
+        See http://pymssql.org/en/stable/ref/pymssql.html#pymssql.Connection.commit.
+        """
+        StaticDataLayer.__conn.commit()
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
@@ -71,7 +68,7 @@ class StaticDataLayer:
         StaticDataLayer.__conn = pymssql.connect(**kwargs)
 
         # Install our own message handler.
-        StaticDataLayer.__conn._conn.set_msghandler(StaticDataLayer.my_msg_handler)
+        StaticDataLayer.__conn._conn.set_msghandler(StaticDataLayer.stratum_msg_handler)
 
         # Set the default settings.
         cursor = StaticDataLayer.__conn.cursor()
@@ -79,12 +76,13 @@ class StaticDataLayer:
         cursor.execute('set ansi_nulls on')
         cursor.close()
 
-        # We are not interested in transaction (but in restartable process steps).
-        StaticDataLayer.__conn.autocommit(True)
-
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def disconnect():
+        """
+        Disconnects from the MS SQL Server instance.
+        See http://pymssql.org/en/stable/ref/pymssql.html#pymssql.Connection.close.
+        """
         StaticDataLayer.__conn.close()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -292,5 +290,40 @@ class StaticDataLayer:
     def execute_table(sql, *params):
         # @todo methods for showing table
         raise NotImplementedError
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def rollback():
+        """
+        Rolls back the current transaction.
+        See http://pymssql.org/en/stable/ref/pymssql.html#pymssql.Connection.rollback.
+        """
+        StaticDataLayer.__conn.rollback()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def stratum_msg_handler(msgstate, severity, srvname, procname, line, msgtext):
+        """
+        Custom message handler suppressing some superfluous messages.
+        """
+        if severity > 0:
+            print("Error at line %d: %s" % (line, msgtext.decode("utf-8")), file=sys.stderr)
+        else:
+            msg = msgtext.decode("utf-8")
+
+            # Suppress bogus messages if flag is set.
+            if StaticDataLayer._suppress_superfluous_messages:
+                # @todo Make this method more flexible by using two lists. One with strings and one on regex to
+                # suppress.
+                if msg == 'Warning: Null value is eliminated by an aggregate or other SET operation.':
+                    return
+
+                if re.match(
+                        "^The module \'.*\' depends on the missing object \'.*\'. The module will still be created; "
+                        "however, it cannot run successfully until the object exists.$",
+                        msg):
+                    return
+
+            print(msg)
 
 # ----------------------------------------------------------------------------------------------------------------------
