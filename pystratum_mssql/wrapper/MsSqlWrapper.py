@@ -68,7 +68,7 @@ class MsSqlWrapper(Wrapper):
         self._write_separator()
         self._write_line('@staticmethod')
         self._write_line(
-            'def {0!s}({1!s}):'.format(str(routine['routine_base_name']), str(self._get_wrapper_args(routine))))
+                'def {0!s}({1!s}):'.format(str(routine['routine_base_name']), str(self._get_wrapper_args(routine))))
         self._write_result_handler(routine)
 
         return self._code
@@ -155,6 +155,7 @@ class MsSqlWrapper(Wrapper):
                   'smallmoney':     '%s',
                   'text':           '%s',
                   'time':           '%s',
+                  'timestamp':      '%s',
                   'tinyint':        '%s',
                   'varbinary':      '%s',
                   'varchar':        '%s',
