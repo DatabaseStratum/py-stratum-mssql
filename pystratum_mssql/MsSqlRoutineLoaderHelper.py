@@ -111,7 +111,7 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         return MsSqlDataTypeHelper()
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _is_start_or_store_routine(self, line):
+    def _is_start_of_stored_routine(self, line):
         """
         Returns True if a line is the start of the code of the stored routine.
 
@@ -119,7 +119,18 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
 
         :rtype: bool
         """
-        return re.match(r'^\s*create\s+(procedure|function)', line) is not None
+        return re.match(r'^\s*create\s+(procedure|function)', line, re.IGNORECASE) is not None
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def _is_start_of_stored_routine_body(self, line):
+        """
+        Returns True if a line is the start of the body of the stored routine.
+
+        :param str line: The line with source code of the stored routine.
+
+        :rtype: bool
+        """
+        return re.match(r'^\s*as', line, re.IGNORECASE) is not None
 
     # ------------------------------------------------------------------------------------------------------------------
     def _load_routine_file(self):
@@ -149,7 +160,7 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         if self._rdbms_old_metadata:
             if self._pystratum_old_metadata and self._pystratum_old_metadata['designation'] == \
                     self._pystratum_metadata['designation']:
-                p = re.compile("(create\\s+(procedure|function))", re.IGNORECASE)
+                p = re.compile(r'(create\s+(procedure|function))', re.IGNORECASE)
                 matches = p.findall(routine_source)
                 if matches:
                     routine_source = routine_source.replace(matches[0][0], 'alter %s' % matches[0][1])
@@ -188,50 +199,6 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
                                              'data_type_descriptor': value})
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_designation_type(self):
-        """
-        Extracts the designation type of the stored routine.
-
-        Returns True on success. Otherwise returns False.
-
-        :rtype: bool
-        """
-        ret = True
-
-        key = self._routine_source_code_lines.index('as')
-
-        if key != -1:
-            p = re.compile(r'\s*--\s+type:\s*(\w+)\s*(.+)?\s*', re.IGNORECASE)
-            matches = p.findall(self._routine_source_code_lines[key - 1])
-
-            if matches:
-                self._designation_type = matches[0][0]
-                tmp = str(matches[0][1])
-                if self._designation_type == 'bulk_insert':
-                    n = re.compile(r'([a-zA-Z0-9_]+)\s+([a-zA-Z0-9_,]+)')
-                    info = n.findall(tmp)
-
-                    if not info:
-                        raise LoaderException('Expected: -- type: bulk_insert <table_name> <columns> in file {0}'.
-                                              format(self._source_filename))
-                    self._table_name = info[0][0]
-                    self._columns = str(info[0][1]).split(',')
-
-                elif self._designation_type == 'rows_with_key' or self._designation_type == 'rows_with_index':
-                    self._columns = str(matches[0][1]).split(',')
-                else:
-                    if matches[0][1]:
-                        ret = False
-        else:
-            ret = False
-
-        if not ret:
-            raise LoaderException("Unable to find the designation type of the stored routine in file {0}".
-                                  format(self._source_filename))
-
-        return ret
-
-    # ------------------------------------------------------------------------------------------------------------------
     def _drop_routine(self):
         """
         Drops the stored routine if it exists.
@@ -243,7 +210,7 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
                 routine_type = 'function'
             else:
                 raise Exception("Unknown routine type '{0}'.".format(self._rdbms_old_metadata['routine_type']))
-            
+
             MsSqlMetadataDataLayer.drop_stored_routine(routine_type,
                                                        self._rdbms_old_metadata['schema_name'],
                                                        self._routine_base_name)
