@@ -41,13 +41,6 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
                                      rdbms_old_metadata,
                                      io)
 
-        self._routines_schema_name = None
-        """
-        The name of the schema of the stored routine.
-
-        :type: str
-        """
-
         self._routine_base_name = None
         """
         The name of the stored routine without schema name.
@@ -55,28 +48,45 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         :type: str
         """
 
+        self._routines_schema_name = None
+        """
+        The name of the schema of the stored routine.
+
+        :type: str
+        """
+
     # ------------------------------------------------------------------------------------------------------------------
-    def _must_reload(self):
+    def _drop_routine(self):
         """
-        Returns True if the source file must be load or reloaded. Otherwise returns False.
-
-        :rtype: bool
+        Drops the stored routine if it exists.
         """
-        if not self._pystratum_old_metadata:
-            return True
+        if self._rdbms_old_metadata:
+            if self._rdbms_old_metadata['routine_type'].strip() == 'P':
+                routine_type = 'procedure'
+            elif self._rdbms_old_metadata['routine_type'].strip() in ('FN', 'TF'):
+                routine_type = 'function'
+            else:
+                raise Exception("Unknown routine type '{0}'.".format(self._rdbms_old_metadata['routine_type']))
 
-        if self._pystratum_old_metadata['timestamp'] != self._m_time:
-            return True
+            MsSqlMetadataDataLayer.drop_stored_routine(routine_type,
+                                                       self._rdbms_old_metadata['schema_name'],
+                                                       self._routine_base_name)
 
-        if self._pystratum_old_metadata['replace']:
-            for key, value in self._pystratum_old_metadata['replace'].items():
-                if key.lower() not in self._replace_pairs or self._replace_pairs[key.lower()] != value:
-                    return True
+    # ------------------------------------------------------------------------------------------------------------------
+    def _get_bulk_insert_table_columns_info(self):
+        """
+        Gets the column names and column types of the current table for bulk insert.
+        """
+        raise NotImplementedError()
 
-        if not self._rdbms_old_metadata:
-            return True
+    # ------------------------------------------------------------------------------------------------------------------
+    def _get_data_type_helper(self):
+        """
+        Returns a data type helper object for SQL Server.
 
-        return False
+        :rtype: pystratum.helper.DataTypeHelper.DataTypeHelper
+        """
+        return MsSqlDataTypeHelper()
 
     # ------------------------------------------------------------------------------------------------------------------
     def _get_name(self):
@@ -102,13 +112,23 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
                                   format(self._source_filename))
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_data_type_helper(self):
+    def _get_routine_parameters_info(self):
         """
-        Returns a data type helper object for SQL Server.
+        Retrieves information about the stored routine parameters from the meta data of SQL Server.
+        """
+        routine_parameters = MsSqlMetadataDataLayer.get_routine_parameters(self._routines_schema_name,
+                                                                           self._routine_base_name)
+        if len(routine_parameters) != 0:
+            for routine_parameter in routine_parameters:
+                if routine_parameter['parameter_name']:
+                    parameter_name = routine_parameter['parameter_name'][1:]
+                    value = routine_parameter['type_name']
 
-        :rtype: pystratum.helper.DataTypeHelper.DataTypeHelper
-        """
-        return MsSqlDataTypeHelper()
+                    self._parameters.append({'name':                 parameter_name,
+                                             'data_type':            routine_parameter['type_name'],
+                                             'numeric_precision':    routine_parameter['precision'],
+                                             'numeric_scale':        routine_parameter['scale'],
+                                             'data_type_descriptor': value})
 
     # ------------------------------------------------------------------------------------------------------------------
     def _is_start_of_stored_routine(self, line):
@@ -173,47 +193,27 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         MsSqlMetadataDataLayer.execute_none(routine_source)
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_bulk_insert_table_columns_info(self):
+    def _must_reload(self):
         """
-        Gets the column names and column types of the current table for bulk insert.
-        """
-        raise NotImplementedError()
+        Returns True if the source file must be load or reloaded. Otherwise returns False.
 
-    # ------------------------------------------------------------------------------------------------------------------
-    def _get_routine_parameters_info(self):
+        :rtype: bool
         """
-        Retrieves information about the stored routine parameters from the meta data of SQL Server.
-        """
-        routine_parameters = MsSqlMetadataDataLayer.get_routine_parameters(self._routines_schema_name,
-                                                                           self._routine_base_name)
-        if len(routine_parameters) != 0:
-            for routine_parameter in routine_parameters:
-                if routine_parameter['parameter_name']:
-                    parameter_name = routine_parameter['parameter_name'][1:]
-                    value = routine_parameter['type_name']
+        if not self._pystratum_old_metadata:
+            return True
 
-                    self._parameters.append({'name':                 parameter_name,
-                                             'data_type':            routine_parameter['type_name'],
-                                             'numeric_precision':    routine_parameter['precision'],
-                                             'numeric_scale':        routine_parameter['scale'],
-                                             'data_type_descriptor': value})
+        if self._pystratum_old_metadata['timestamp'] != self._m_time:
+            return True
 
-    # ------------------------------------------------------------------------------------------------------------------
-    def _drop_routine(self):
-        """
-        Drops the stored routine if it exists.
-        """
-        if self._rdbms_old_metadata:
-            if self._rdbms_old_metadata['routine_type'].strip() == 'P':
-                routine_type = 'procedure'
-            elif self._rdbms_old_metadata['routine_type'].strip() in ('FN', 'TF'):
-                routine_type = 'function'
-            else:
-                raise Exception("Unknown routine type '{0}'.".format(self._rdbms_old_metadata['routine_type']))
+        if self._pystratum_old_metadata['replace']:
+            for key, value in self._pystratum_old_metadata['replace'].items():
+                if key.lower() not in self._replace_pairs or self._replace_pairs[key.lower()] != value:
+                    return True
 
-            MsSqlMetadataDataLayer.drop_stored_routine(routine_type,
-                                                       self._rdbms_old_metadata['schema_name'],
-                                                       self._routine_base_name)
+        if not self._rdbms_old_metadata:
+            return True
+
+        return False
 
     # ------------------------------------------------------------------------------------------------------------------
     def _update_metadata(self):
