@@ -5,6 +5,7 @@
 /build/
 /composer.lock
 /dist/
+/docs/_build/
 /pystratum_test/etc/columns.txt
 /pystratum_test/etc/routines.json
 /pystratum_test/html/

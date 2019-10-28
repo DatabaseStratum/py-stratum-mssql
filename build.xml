@@ -43,27 +43,17 @@
     </target>
 
     <!-- All steps for releasing a new version -->
-    <target name="new-version" depends="version,dist,upload"/>
+    <target name="new-version" depends="version,dist,upload,docs"/>
 
     <!-- Checks the code with pylint -->
     <target name="pylint">
         <exec command="pylint --rcfile pylintrc pystratum" passthru="true"/>
     </target>
 
-    <!-- Generates the API documentation -->
-    <target name="apidoc">
-        <delete includeemptydirs="true" verbose="false" failonerror="true">
-            <fileset dir="source">
-                <include name="**"/>
-                <exclude name="conf.py"/>
-                <exclude name="index.rst"/>
-                <exclude name="Makefile"/>
-                <exclude name="modules.rst"/>
-                <exclude name="_static"/>
-            </fileset>
-        </delete>
-        <exec command="sphinx-apidoc-3 -f pystratum/ -d 4 -e -P -o source/" passthru="true" checkreturn="true"/>
-        <exec command="sphinx-build-3 -b html -d build/doctrees source build/html" passthru="true" checkreturn="true"/>
+    <!-- Generates the documentation -->
+    <target name="docs">
+        <exec command="sphinx-apidoc -o api --force --doc-project API --no-toc ../pystratum_mssql" dir="docs" passthru="true" checkreturn="true"/>
+        <exec command="make html" dir="docs" passthru="true" checkreturn="true"/>
     </target>
 
     <!-- Default target -->
