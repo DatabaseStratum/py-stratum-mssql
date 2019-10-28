@@ -1,21 +1,21 @@
 filter:
   excluded_paths:
-  - pystratum_test/*
+    - pystratum_test/*
 
 before_commands:
-- sudo pip3 install cleo
-- sudo pip3 install coverage
-- sudo pip3 install pystratum
+  - sudo pip3 install cleo
+  - sudo pip3 install coverage
+  - sudo pip3 install pystratum
 
 build:
   dependencies:
     before:
-    - pip3 install cleo
-    - pip3 install coverage
-    - pip3 install pystratum
+      - pip3 install cleo
+      - pip3 install coverage
+      - pip3 install pystratum
 
   nodes:
     analysis:
       tests:
         override:
-        - py-scrutinizer-run
+          - py-scrutinizer-run
