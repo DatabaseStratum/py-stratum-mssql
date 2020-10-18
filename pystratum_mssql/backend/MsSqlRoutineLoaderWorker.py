@@ -103,56 +103,34 @@ class MsSqlRoutineLoaderWorker(MsSqlWorker, CommonRoutineLoaderWorker):
         """
         data_type = column['data_type']
 
-        if data_type == 'bigint':
+        if data_type in ['bigint',
+                         'int',
+                         'smallint',
+                         'tinyint',
+                         'bit',
+                         'money',
+                         'smallmoney',
+                         'float',
+                         'real',
+                         'date',
+                         'datetime',
+                         'datetime2',
+                         'datetimeoffset',
+                         'smalldatetime',
+                         'time',
+                         'text',
+                         'ntext',
+                         'binary',
+                         'image',
+                         'xml',
+                         'geography',
+                         'geometry',
+                         'sysname'
+                         ]:
             return data_type
 
-        if data_type == 'int':
-            return data_type
-
-        if data_type == 'smallint':
-            return data_type
-
-        if data_type == 'tinyint':
-            return data_type
-
-        if data_type == 'bit':
-            return data_type
-
-        if data_type == 'money':
-            return data_type
-
-        if data_type == 'smallmoney':
-            return data_type
-
-        if data_type == 'decimal':
+        if data_type in ['decimal', 'numeric']:
             return 'decimal({0:d},{1:d})'.format(column['precision'], column['scale'])
-
-        if data_type == 'numeric':
-            return 'decimal({0:d},{1:d})'.format(column['precision'], column['scale'])
-
-        if data_type == 'float':
-            return data_type
-
-        if data_type == 'real':
-            return data_type
-
-        if data_type == 'date':
-            return data_type
-
-        if data_type == 'datetime':
-            return data_type
-
-        if data_type == 'datetime2':
-            return data_type
-
-        if data_type == 'datetimeoffset':
-            return data_type
-
-        if data_type == 'smalldatetime':
-            return data_type
-
-        if data_type == 'time':
-            return data_type
 
         if data_type == 'char':
             return 'char({0:d})'.format(column['max_length'])
@@ -163,9 +141,6 @@ class MsSqlRoutineLoaderWorker(MsSqlWorker, CommonRoutineLoaderWorker):
 
             return 'varchar({0:d})'.format(column['max_length'])
 
-        if data_type == 'text':
-            return data_type
-
         if data_type == 'nchar':
             return 'nchar({0:d})'.format(int(column['max_length'] / 2))
 
@@ -175,29 +150,8 @@ class MsSqlRoutineLoaderWorker(MsSqlWorker, CommonRoutineLoaderWorker):
 
             return 'nvarchar({0:d})'.format(int(column['max_length'] / 2))
 
-        if data_type == 'ntext':
-            return data_type
-
-        if data_type == 'binary':
-            return data_type
-
         if data_type == 'varbinary':
             return 'varbinary({0:d})'.format(column['max_length'])
-
-        if data_type == 'image':
-            return data_type
-
-        if data_type == 'xml':
-            return data_type
-
-        if data_type == 'geography':
-            return data_type
-
-        if data_type == 'geometry':
-            return data_type
-
-        if data_type == 'sysname':
-            return data_type
 
         raise Exception("Unexpected data type '{0}'".format(data_type))
 
