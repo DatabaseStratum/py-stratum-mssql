@@ -226,58 +226,29 @@ class MsSqlConstantWorker(MsSqlWorker, CommonConstantWorker):
         """
         data_type = column['data_type']
 
-        if data_type == 'bigint':
+        if data_type in ['bigint',
+                         'int',
+                         'smallint',
+                         'tinyint',
+                         'money',
+                         'smallmoney',
+                         'decimal',
+                         'numeric',
+                         'float',
+                         'real',
+                         'date',
+                         'datetime',
+                         'datetime2',
+                         'datetimeoffset',
+                         'smalldatetime',
+                         'time']:
             return column['precision']
 
-        if data_type == 'int':
-            return column['precision']
-
-        if data_type == 'smallint':
-            return column['precision']
-
-        if data_type == 'tinyint':
-            return column['precision']
-
-        if data_type == 'bit':
-            return column['max_length']
-
-        if data_type == 'money':
-            return column['precision']
-
-        if data_type == 'smallmoney':
-            return column['precision']
-
-        if data_type == 'decimal':
-            return column['precision']
-
-        if data_type == 'numeric':
-            return column['precision']
-
-        if data_type == 'float':
-            return column['precision']
-
-        if data_type == 'real':
-            return column['precision']
-
-        if data_type == 'date':
-            return column['precision']
-
-        if data_type == 'datetime':
-            return column['precision']
-
-        if data_type == 'datetime2':
-            return column['precision']
-
-        if data_type == 'datetimeoffset':
-            return column['precision']
-
-        if data_type == 'smalldatetime':
-            return column['precision']
-
-        if data_type == 'time':
-            return column['precision']
-
-        if data_type == 'char':
+        if data_type in ['bit',
+                         'char',
+                         'binary',
+                         'varbinary',
+                         'sysname']:
             return column['max_length']
 
         if data_type == 'varchar':
@@ -287,12 +258,6 @@ class MsSqlConstantWorker(MsSqlWorker, CommonConstantWorker):
 
             return column['max_length']
 
-        if data_type == 'text':
-            return 2147483647
-
-        if data_type == 'nchar':
-            return column['max_length'] / 2
-
         if data_type == 'nvarchar':
             if column['max_length'] == -1:
                 # This is a nvarchar(max) data type.
@@ -300,35 +265,19 @@ class MsSqlConstantWorker(MsSqlWorker, CommonConstantWorker):
 
             return column['max_length'] / 2
 
+        if data_type in ['text', 'image', 'xml']:
+            return 2147483647
+
+        if data_type == 'nchar':
+            return column['max_length'] / 2
+
         if data_type == 'ntext':
             return 1073741823
 
-        if data_type == 'binary':
-            return column['max_length']
-
-        if data_type == 'varbinary':
-            return column['max_length']
-
-        if data_type == 'image':
-            return 2147483647
-
-        if data_type == 'xml':
-            return 2147483647
-
-        if data_type == 'geography':
+        if data_type in ['geography', 'geometry']:
             if column['max_length'] == -1:
-                # This is a varchar(max) data type.
                 return 2147483647
 
-        if data_type == 'geometry':
-            if column['max_length'] == -1:
-                # This is a varchar(max) data type.
-                return 2147483647
-
-        if data_type == 'sysname':
-            return column['max_length']
-
-        print(column)
         raise Exception("Unexpected data type '{0}'".format(data_type))
 
 # ----------------------------------------------------------------------------------------------------------------------
