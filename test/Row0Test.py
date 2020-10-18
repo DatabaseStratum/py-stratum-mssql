@@ -1,10 +1,6 @@
-"""
-PyStratum
-"""
-from pystratum.exception.ResultException import ResultException
+from pystratum_middle.exception.ResultException import ResultException
 
-from pystratum_test.TestDataLayer import TestDataLayer
-from pystratum_test.StratumTestCase import StratumTestCase
+from test.StratumTestCase import StratumTestCase
 
 
 class Row0Test(StratumTestCase):
@@ -13,7 +9,7 @@ class Row0Test(StratumTestCase):
         """
         Stored routine with designation type row0 must return None.
         """
-        ret = TestDataLayer.tst_test_row0(0)
+        ret = self._dl.tst_test_row0(0)
         self.assertIsNone(ret)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -21,7 +17,7 @@ class Row0Test(StratumTestCase):
         """
         Stored routine with designation type row0 must return 1 row.
         """
-        ret = TestDataLayer.tst_test_row0(1)
+        ret = self._dl.tst_test_row0(1)
         self.assertIsInstance(ret, dict)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -30,7 +26,7 @@ class Row0Test(StratumTestCase):
         An exception must be thrown when a stored routine with designation type row0 returns more than 1 rows.
         """
         with self.assertRaises(ResultException):
-            TestDataLayer.tst_test_row0(2)
+            self._dl.tst_test_row0(2)
 
     # ------------------------------------------------------------------------------------------------------------------
     def test11a(self):
@@ -38,7 +34,7 @@ class Row0Test(StratumTestCase):
         A query selecting 0 rows with arguments must return None.
         """
         sql = 'select %s as "hello" from [dbo].[TST_FOO2] where tst_c00 <= %d'
-        ret = TestDataLayer.execute_row0(sql, ('hello', 0))
+        ret = self._dl.execute_row0(sql, ('hello', 0))
         self.assertIsNone(ret)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -47,7 +43,7 @@ class Row0Test(StratumTestCase):
         A query selecting 0 rows without arguments must return None.
         """
         sql = 'select * from [dbo].[TST_FOO2] where tst_c00 <= 0'
-        ret = TestDataLayer.execute_row0(sql)
+        ret = self._dl.execute_row0(sql)
         self.assertIsNone(ret)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -57,6 +53,6 @@ class Row0Test(StratumTestCase):
         """
         with self.assertRaises(ResultException):
             sql = 'select * from [dbo].[TST_FOO2] where tst_c00 <= 2'
-            TestDataLayer.execute_row0(sql)
+            self._dl.execute_row0(sql)
 
 # ----------------------------------------------------------------------------------------------------------------------

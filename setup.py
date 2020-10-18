@@ -11,12 +11,12 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='PyStratum-MSSQL',
 
-    version='0.10.2',
+    version='0.0.0',
 
-    description='A stored procedure and function loader and wrapper generator for SQL Server',
+    description='PyStratum-MSSQL: MS SQL Server Backend',
     long_description=long_description,
 
-    url='https://github.com/SetBased/py-stratum-mssql',
+    url='https://github.com/DatabaseStratum/py-stratum-mssql',
 
     author='Set Based IT Consultancy',
     author_email='info@setbased.nl',
@@ -36,12 +36,13 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9'
     ],
 
-    keywords='stored procedure, stored procedures, wrapper, loader, SQL Server',
+    keywords='PyStratum, MS SQL Server',
 
-    packages=find_packages(exclude=['build', 'pystratum_test']),
+    packages=find_packages(exclude=['build', 'test']),
 
-    install_requires=['pymssql', 'pystratum>=0.10.21'],
+    install_requires=['pymssql'],
 )

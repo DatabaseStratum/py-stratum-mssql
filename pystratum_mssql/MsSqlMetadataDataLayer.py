@@ -1,9 +1,10 @@
-"""
-PyStratum
-"""
-from pystratum.MetadataDataLayer import MetadataDataLayer
+from typing import Any, Dict, List
 
-from pystratum_mssql.StaticDataLayer import StaticDataLayer
+from pystratum_backend.StratumStyle import StratumStyle
+from pystratum_common.MetadataDataLayer import MetadataDataLayer
+
+from pystratum_mssql.MsSqlDataLayer import MsSqlDataLayer
+from pystratum_mssql.MsSqlConnector import MsSqlConnector
 
 
 class MsSqlMetadataDataLayer(MetadataDataLayer):
@@ -14,29 +15,46 @@ class MsSqlMetadataDataLayer(MetadataDataLayer):
     """
     The connection to the SQL Server instance.
 
-    :type: pystratum_mssql.StaticDataLayer.StaticDataLayer|None
+    :type: pystratum_mssql.MsSqlDataLayer.MsSqlDataLayer|None
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def connect(**kwargs):
+    def __init__(self, io: StratumStyle, connector: MsSqlConnector):
+        """
+        Object constructor.
+
+        :param PyStratumStyle io: The output decorator.
+        """
+        super().__init__(io)
+
+        self.__dl: MsSqlDataLayer = MsSqlDataLayer(connector)
+        """
+        The connection to the MySQL instance.
+        """
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def commit(self) -> None:
         """
         Connects to a SQL Server instance.
         """
-        MsSqlMetadataDataLayer.__dl = StaticDataLayer()
-        MsSqlMetadataDataLayer.__dl.connect(**kwargs)
+        self.__dl.commit()
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def disconnect():
+    def connect(self) -> None:
+        """
+        Connects to a SQL Server instance.
+        """
+        self.__dl.connect()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def disconnect(self) -> None:
         """
         Disconnects from the SQL Server instance.
         """
-        MsSqlMetadataDataLayer.__dl.disconnect()
+        self.__dl.disconnect()
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def drop_stored_routine(routine_type, schema_name, routine_name):
+    def drop_stored_routine(self, routine_type: str, schema_name: str, routine_name: str) -> None:
         """
         Drops a stored routine if it exists.
 
@@ -46,11 +64,10 @@ class MsSqlMetadataDataLayer(MetadataDataLayer):
         """
         sql = "drop {0} [{1}].[{2}]".format(routine_type, schema_name, routine_name)
 
-        MsSqlMetadataDataLayer.execute_none(sql)
+        self.execute_none(sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def drop_temporary_table(table_name):
+    def drop_temporary_table(self, table_name: str) -> None:
         """
         Drops a temporary table.
 
@@ -58,11 +75,10 @@ class MsSqlMetadataDataLayer(MetadataDataLayer):
         """
         sql = 'drop temporary table `{0}`'.format(table_name)
 
-        MsSqlMetadataDataLayer.execute_none(sql)
+        self.execute_none(sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_none(query):
+    def execute_none(self, query: str) -> None:
         """
         Executes a query that does not select any rows.
 
@@ -70,13 +86,12 @@ class MsSqlMetadataDataLayer(MetadataDataLayer):
 
         :rtype: int
         """
-        MsSqlMetadataDataLayer._log_query(query)
+        self._log_query(query)
 
-        return MsSqlMetadataDataLayer.__dl.execute_none(query)
+        return self.__dl.execute_none(query)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_rows(query):
+    def execute_rows(self, query: str) -> List[Dict[str, Any]]:
         """
         Executes a query that selects 0 or more rows. Returns the selected rows (an empty list if no rows are selected).
 
@@ -84,13 +99,12 @@ class MsSqlMetadataDataLayer(MetadataDataLayer):
 
         :rtype: list[dict[str,*]]
         """
-        MsSqlMetadataDataLayer._log_query(query)
+        self._log_query(query)
 
-        return MsSqlMetadataDataLayer.__dl.execute_rows(query)
+        return self.__dl.execute_rows(query)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def get_all_table_columns():
+    def get_all_table_columns(self) -> List[Dict[str, Any]]:
         """
         Selects metadata of all columns of all tables.
 
@@ -121,11 +135,10 @@ order by  scm.name
 ,         col.column_id
 """
 
-        return MsSqlMetadataDataLayer.execute_rows(sql)
+        return self.execute_rows(sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def get_label_tables(regex):
+    def get_label_tables(self, regex: str) -> List[Dict[str, Any]]:
         """
         Selects metadata of tables with a label column.
 
@@ -134,22 +147,27 @@ order by  scm.name
         :rtype: list[dict[str,*]]
         """
         sql = """
-select scm.name  schema_name
-,      tab.name  table_name
-,      cl1.name  label
-,      cl2.name  id
-from       sys.schemas     scm
+select db_name() [database]
+,      scm.name  [schema_name]
+,      tab.name  [table_name]
+,      cl1.name  [label]
+,      cl2.name  [id]
+from       sys.schemas     scm 
 inner join sys.tables      tab  on  tab.[schema_id] = scm.[schema_id]
 inner join sys.all_columns cl1  on  cl1.[object_id] = tab.[object_id]
 inner join sys.all_columns cl2  on  cl2.[object_id] = tab.[object_id]
 where cl1.name like '{0}'
 and   cl2.is_identity = 1""".format(regex)
 
-        return MsSqlMetadataDataLayer.execute_rows(sql)
+        return self.execute_rows(sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def get_labels_from_table(database_name, schema_name, table_name, id_column_name, label_column_name):
+    def get_labels_from_table(self,
+                              database_name: str,
+                              schema_name: str,
+                              table_name: str,
+                              id_column_name: str,
+                              label_column_name: str) -> List[Dict[str, Any]]:
         """
         Selects all labels from a table with labels.
 
@@ -171,11 +189,10 @@ where  nullif(tab.[{1!s}],'') is not null""".format(id_column_name,
                                                     schema_name,
                                                     table_name)
 
-        return MsSqlMetadataDataLayer.execute_rows(sql)
+        return self.execute_rows(sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def get_routine_parameters(schema_name, routine_name):
+    def get_routine_parameters(self, schema_name: str, routine_name: str) -> List[Dict[str, Any]]:
         """
         Selects metadata of the parameters of a stored routine.
 
@@ -198,11 +215,10 @@ where scm.name = '%s'
 and   prc.name = '%s'
 order by par.parameter_id""" % (schema_name, routine_name)
 
-        return MsSqlMetadataDataLayer.execute_rows(sql)
+        return self.execute_rows(sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def get_routines():
+    def get_routines(self) -> List[Dict[str, Any]]:
         """
         Selects metadata of all routines.
 
@@ -218,6 +234,6 @@ where prc.type in ('P','FN','TF')
 and   scm.name <> 'sys'
 and   prc.is_ms_shipped=0"""
 
-        return MsSqlMetadataDataLayer.execute_rows(sql)
+        return self.execute_rows(sql)
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -153,7 +153,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'PyStratum-mssql', u'Stratum SQL Server Documentation',
+    (master_doc, 'PyStratum-MSSQL', u'Stratum SQL Server Documentation',
      author, 'PyStratum-mssql', 'One line description of project.',
      'Miscellaneous'),
 ]

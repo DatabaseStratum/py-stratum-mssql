@@ -1,9 +1,4 @@
-"""
-PyStratum
-"""
-from pystratum_test.TestDataLayer import TestDataLayer
-
-from pystratum_test.StratumTestCase import StratumTestCase
+from test.StratumTestCase import StratumTestCase
 
 
 class RowsWithKeyTest(StratumTestCase):
@@ -12,7 +7,7 @@ class RowsWithKeyTest(StratumTestCase):
         """
         Stored routine with designation type rows_with_key must return multi dimensional array.
         """
-        rows = TestDataLayer.tst_test_rows_with_key1(100)
+        rows = self._dl.tst_test_rows_with_key1(100)
         self.assertIsInstance(rows, dict)
         self.assertEqual(1, len(rows))
         self.assertTrue('a' in rows)
@@ -26,7 +21,7 @@ class RowsWithKeyTest(StratumTestCase):
         """
         Stored routine with designation type rows_with_key must return empty array when no rows are selected.
         """
-        rows = TestDataLayer.tst_test_rows_with_key1(0)
+        rows = self._dl.tst_test_rows_with_key1(0)
         self.assertIsInstance(rows, dict)
         self.assertEqual(0, len(rows))
 

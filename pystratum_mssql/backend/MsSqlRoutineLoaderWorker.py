@@ -1,35 +1,35 @@
-"""
-PyStratum
-"""
-from pystratum.RoutineLoader import RoutineLoader
+from configparser import ConfigParser
+from typing import Any, Dict, Optional
 
-from pystratum_mssql.MsSqlConnection import MsSqlConnection
-from pystratum_mssql.MsSqlMetadataDataLayer import MsSqlMetadataDataLayer
-from pystratum_mssql.MsSqlRoutineLoaderHelper import MsSqlRoutineLoaderHelper
+from pystratum_backend.StratumStyle import StratumStyle
+from pystratum_common.backend.CommonRoutineLoaderWorker import CommonRoutineLoaderWorker
+
+from pystratum_mssql.backend.MsSqlWorker import MsSqlWorker
+from pystratum_mssql.helper.MsSqlRoutineLoaderHelper import MsSqlRoutineLoaderHelper
 
 
-class MsSqlRoutineLoader(MsSqlConnection, RoutineLoader):
+class MsSqlRoutineLoaderWorker(MsSqlWorker, CommonRoutineLoaderWorker):
     """
     Class for loading stored routines into a SQL Server instance from pseudo SQL files.
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, io):
+    def __init__(self, io: StratumStyle, config: ConfigParser):
         """
         Object constructor.
 
-        :param pystratum.style.PyStratumStyle.PyStratumStyle io: The output decorator.
+        :param PyStratumStyle io: The output decorator.
         """
-        RoutineLoader.__init__(self, io)
-        MsSqlConnection.__init__(self, io)
+        MsSqlWorker.__init__(self, io, config)
+        CommonRoutineLoaderWorker.__init__(self, io, config)
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_column_type(self):
+    def _get_column_type(self) -> None:
         """
         Selects schema, table, column names and the column types from the SQL Server instance and saves them as replace
         pairs.
         """
-        rows = MsSqlMetadataDataLayer.get_all_table_columns()
+        rows = self._dl.get_all_table_columns()
         for row in rows:
             key = '@{0}.{1}.{2}%type@'.format(row['schema_name'], row['table_name'], row['column_name'])
             key = key.lower()
@@ -41,7 +41,10 @@ class MsSqlRoutineLoader(MsSqlConnection, RoutineLoader):
         self._io.text('Selected {0} column types for substitution'.format(len(rows)))
 
     # ------------------------------------------------------------------------------------------------------------------
-    def create_routine_loader_helper(self, routine_name, pystratum_old_metadata, rdbms_old_metadata):
+    def create_routine_loader_helper(self,
+                                     routine_name: str,
+                                     pystratum_old_metadata: Optional[Dict],
+                                     rdbms_old_metadata: Optional[Dict]) -> MsSqlRoutineLoaderHelper:
         """
         Creates a Routine Loader Helper object.
 
@@ -49,27 +52,28 @@ class MsSqlRoutineLoader(MsSqlConnection, RoutineLoader):
         :param dict pystratum_old_metadata: The old metadata of the stored routine from PyStratum.
         :param dict rdbms_old_metadata:  The old metadata of the stored routine from MS SQL Server.
 
-        :rtype: pystratum.mssql.MsSqlRoutineLoaderHelper.MsSqlRoutineLoaderHelper
+        :rtype: MsSqlRoutineLoaderHelper
         """
-        return MsSqlRoutineLoaderHelper(self._source_file_names[routine_name],
+        return MsSqlRoutineLoaderHelper(self._io,
+                                        self._dl,
+                                        self._source_file_names[routine_name],
                                         self._source_file_encoding,
                                         pystratum_old_metadata,
                                         self._replace_pairs,
-                                        rdbms_old_metadata,
-                                        self._io)
+                                        rdbms_old_metadata)
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_old_stored_routine_info(self):
+    def _get_old_stored_routine_info(self) -> None:
         """
         Retrieves information about all stored routines.
         """
-        rows = MsSqlMetadataDataLayer.get_routines()
+        rows = self._dl.get_routines()
         self._rdbms_old_metadata = {}
         for row in rows:
             self._rdbms_old_metadata[row['schema_name'] + '.' + row['routine_name']] = row
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _drop_obsolete_routines(self):
+    def _drop_obsolete_routines(self) -> None:
         """
         Drops obsolete stored routines (i.e. stored routines that exits but for which we don't have a source file).
         """
@@ -85,11 +89,11 @@ class MsSqlRoutineLoader(MsSqlConnection, RoutineLoader):
                 self._io.writeln("Dropping {0} <dbo>{1}.{2}</dbo>".format(routine_type,
                                                                           values['schema_name'],
                                                                           values['routine_name']))
-                MsSqlMetadataDataLayer.drop_stored_routine(routine_type, values['schema_name'], values['routine_name'])
+                self._dl.drop_stored_routine(routine_type, values['schema_name'], values['routine_name'])
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def _derive_data_type(column):
+    def _derive_data_type(column: Dict[str, Any]) -> str:
         """
         Returns the proper SQL declaration of a data type of a column.
 
@@ -192,16 +196,9 @@ class MsSqlRoutineLoader(MsSqlConnection, RoutineLoader):
         if data_type == 'geometry':
             return data_type
 
+        if data_type == 'sysname':
+            return data_type
+
         raise Exception("Unexpected data type '{0}'".format(data_type))
-
-    # ------------------------------------------------------------------------------------------------------------------
-    def _read_configuration_file(self, config_filename):
-        """
-        Reads parameters from the configuration file.
-
-        :param str config_filename: The name of the configuration file.
-        """
-        RoutineLoader._read_configuration_file(self, config_filename)
-        MsSqlConnection._read_configuration_file(self, config_filename)
 
 # ----------------------------------------------------------------------------------------------------------------------

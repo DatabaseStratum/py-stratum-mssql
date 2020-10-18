@@ -1,28 +1,20 @@
-"""
-PyStratum
-"""
 import csv
-import pymssql
 import re
 import sys
-from time import strftime, gmtime
+from time import gmtime, strftime
+from typing import Any, Dict, List, Optional
 
-from pystratum.exception.ResultException import ResultException
+from pystratum_middle.exception.ResultException import ResultException
+
+from pystratum_mssql.MsSqlConnector import MsSqlConnector
 
 
-class StaticDataLayer:
+class MsSqlDataLayer:
     """
     Class for connecting to a SQL Server instance and executing SQL statements. Also, a parent class for classes with
     static wrapper methods for executing stored procedures and functions.
     """
     # ------------------------------------------------------------------------------------------------------------------
-    __conn = None
-    """
-    The SQL connection.
-
-    :type: Object
-    """
-
     _suppress_superfluous_messages = True
     """
     If set superfluous messages like below will be suppressed:
@@ -42,58 +34,62 @@ class StaticDataLayer:
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def autocommit(status):
+    def __init__(self, connector: MsSqlConnector):
+        """
+        Object constructor.
+        """
+
+        self.__connector: MsSqlConnector = connector
+        """
+        The object for connecting to a MySQL instance.
+        """
+
+        self.__conn: Optional[Any] = None
+        """
+        The connection between Python and the MySQL instance.
+        """
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def autocommit(self, status: bool) -> None:
         """
         Sets auto commit mode.
         See http://pymssql.org/en/stable/ref/pymssql.html#pymssql.Connection.autocommit.
 
         :param bool status: True: Auto commit on. False: Auto commit off.
         """
-        StaticDataLayer.__conn.autocommit(status)
+        self.__conn.autocommit(status)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def commit():
+    def commit(self) -> None:
         """
         Commits the current transaction.
         See http://pymssql.org/en/stable/ref/pymssql.html#pymssql.Connection.commit.
         """
-        StaticDataLayer.__conn.commit()
+        self.__conn.commit()
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def connect(**kwargs):
-        # Connect to the SQL-Server
-        StaticDataLayer.__conn = pymssql.connect(**kwargs)
-
-        # Install our own message handler.
-        StaticDataLayer.__conn._conn.set_msghandler(StaticDataLayer.stratum_msg_handler)
-
-        # Set the default settings.
-        cursor = StaticDataLayer.__conn.cursor()
-        cursor.execute('set nocount on')
-        cursor.execute('set ansi_nulls on')
-        cursor.close()
+    def connect(self) -> None:
+        """
+        Connects to a MS SQL Server instance.
+        """
+        self.__conn = self.__connector.connect()
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def disconnect():
+    def disconnect(self) -> None:
         """
         Disconnects from the MS SQL Server instance.
         See http://pymssql.org/en/stable/ref/pymssql.html#pymssql.Connection.close.
         """
-        StaticDataLayer.__conn.close()
+        self.__conn = None
+        self.__connector.disconnect()
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_csv(sql, filename, dialect='unix', encoding='utf-8'):
-        # Open the CSV file.
+    def execute_csv(self, sql: str, filename: str, dialect: str = 'unix', encoding: str = 'utf-8') -> int:
         file = open(filename, 'w', encoding=encoding)
         csv_file = csv.writer(file, dialect=dialect)
 
         # Run the query.
-        cursor = StaticDataLayer.__conn.cursor(as_dict=False)
+        cursor = self.__conn.cursor(as_dict=False)
         cursor.execute(sql)
 
         # Store all rows in CSV format in the file.
@@ -109,8 +105,7 @@ class StaticDataLayer:
         return n
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_log(sql, *params):
+    def execute_log(self, sql: str, *params) -> int:
         """
         Executes a query with log statements. Returns the number of lines in the log.
 
@@ -119,7 +114,7 @@ class StaticDataLayer:
 
         :rtype: int
         """
-        cursor = StaticDataLayer.__conn.cursor()
+        cursor = self.__conn.cursor()
         cursor.execute(sql, params)
 
         n = 0
@@ -130,7 +125,7 @@ class StaticDataLayer:
                 print(stamp, end='')
                 for field in row:
                     print(' %s' % field, end='')
-                print('', flush=StaticDataLayer.line_buffered)
+                print('', flush=self.line_buffered)
                 n += 1
 
             next_set = cursor.nextset()
@@ -140,8 +135,7 @@ class StaticDataLayer:
         return n
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_none(sql, *params):
+    def execute_none(self, sql: str, *params) -> None:
         """
         Executes a query that does not select any rows.
 
@@ -150,13 +144,12 @@ class StaticDataLayer:
 
         :rtype: None
         """
-        cursor = StaticDataLayer.__conn.cursor()
+        cursor = self.__conn.cursor()
         cursor.execute(sql, *params)
         cursor.close()
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_row0(sql, *params):
+    def execute_row0(self, sql, *params) -> Optional[Dict[str, Any]]:
         """
         Executes a query that selects 0 or 1 row. Returns the selected row or None.
 
@@ -165,7 +158,7 @@ class StaticDataLayer:
 
         :rtype: None|dict[str,*]
         """
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor = self.__conn.cursor(as_dict=True)
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
         cursor.close()
@@ -179,8 +172,7 @@ class StaticDataLayer:
             raise ResultException('0 or 1', n, sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_row1(sql, *params):
+    def execute_row1(self, sql: str, *params) -> Dict[str, Any]:
         """
         Executes a query that selects 1 row. Returns the selected row.
 
@@ -189,7 +181,7 @@ class StaticDataLayer:
 
         :rtype: dict[str,*]
         """
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor = self.__conn.cursor(as_dict=True)
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
         cursor.close()
@@ -201,8 +193,7 @@ class StaticDataLayer:
         return rows[0]
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_rows(sql, *params):
+    def execute_rows(self, sql: str, *params) -> List[Dict[str, Any]]:
         """
         Executes a query that selects 0 or more rows. Returns the selected rows (an empty list if no rows
         are selected).
@@ -212,7 +203,7 @@ class StaticDataLayer:
 
         :rtype: list[dict[str,*]]
         """
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor = self.__conn.cursor(as_dict=True)
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
         cursor.close()
@@ -220,8 +211,7 @@ class StaticDataLayer:
         return rows
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_singleton0(sql, *params):
+    def execute_singleton0(self, sql: str, *params) -> Any:
         """
         Executes a query that selects 0 or 1 row with 1 column. Returns the value of selected column or None.
 
@@ -230,7 +220,7 @@ class StaticDataLayer:
 
         :rtype: *
         """
-        cursor = StaticDataLayer.__conn.cursor()
+        cursor = self.__conn.cursor()
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
         cursor.close()
@@ -244,8 +234,7 @@ class StaticDataLayer:
             raise ResultException('0 or 1', n, sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_singleton1(sql, *params):
+    def execute_singleton1(self, sql: str, *params) -> Any:
         """
         Executes a query that selects 1 row with 1 column. Returns the value of the selected column.
 
@@ -254,7 +243,7 @@ class StaticDataLayer:
 
         :rtype: *
         """
-        cursor = StaticDataLayer.__conn.cursor()
+        cursor = self.__conn.cursor()
         cursor.execute(sql, *params)
         rows = cursor.fetchall()
         cursor.close()
@@ -266,8 +255,7 @@ class StaticDataLayer:
         return rows[0][0]
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_sp_none(sql, *params):
+    def execute_sp_none(self, sql: str, *params) -> None:
         """
         Executes a stored routine that does not select any rows.
 
@@ -276,13 +264,12 @@ class StaticDataLayer:
 
         :rtype: None
         """
-        cursor = StaticDataLayer.__conn.cursor()
+        cursor = self.__conn.cursor()
         cursor.execute(sql, params)
         cursor.close()
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_sp_row0(sql, *params):
+    def execute_sp_row0(self, sql: str, *params) -> Optional[Dict[str, Any]]:
         """
         Executes a stored procedure that selects 0 or 1 row. Returns the selected row or None.
 
@@ -291,7 +278,7 @@ class StaticDataLayer:
 
         :rtype: None|dict[str,*]
         """
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor = self.__conn.cursor(as_dict=True)
         cursor.execute(sql, params)
         rows = cursor.fetchall()
         cursor.close()
@@ -305,8 +292,7 @@ class StaticDataLayer:
             raise ResultException('0 or 1', n, sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_sp_row1(sql, *params):
+    def execute_sp_row1(self, sql: str, *params) -> Dict[str, Any]:
         """
         Executes a stored procedure that selects 1 row. Returns the selected row.
 
@@ -315,7 +301,7 @@ class StaticDataLayer:
 
         :rtype: dict[str,*]
         """
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor = self.__conn.cursor(as_dict=True)
         cursor.execute(sql, params)
         rows = cursor.fetchall()
         cursor.close()
@@ -327,8 +313,7 @@ class StaticDataLayer:
         return rows[0]
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_sp_rows(sql, *params):
+    def execute_sp_rows(self, sql: str, *params) -> List[Dict[str, Any]]:
         """
         Executes a stored procedure that selects 0 or more rows. Returns the selected rows (an empty list if no rows
         are selected).
@@ -338,7 +323,7 @@ class StaticDataLayer:
 
         :rtype: list[dict[str,*]]
         """
-        cursor = StaticDataLayer.__conn.cursor(as_dict=True)
+        cursor = self.__conn.cursor(as_dict=True)
         cursor.execute(sql, params)
         rows = cursor.fetchall()
         cursor.close()
@@ -346,8 +331,7 @@ class StaticDataLayer:
         return rows
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_sp_singleton0(sql, *params):
+    def execute_sp_singleton0(self, sql: str, *params) -> Any:
         """
         Executes a stored procedure that selects 0 or 1 row with 1 column. Returns the value of selected column or None.
 
@@ -356,7 +340,7 @@ class StaticDataLayer:
 
         :rtype: *
         """
-        cursor = StaticDataLayer.__conn.cursor()
+        cursor = self.__conn.cursor()
         cursor.execute(sql, params)
         rows = cursor.fetchall()
         cursor.close()
@@ -370,8 +354,7 @@ class StaticDataLayer:
             raise ResultException('0 or 1', n, sql)
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def execute_sp_singleton1(sql, *params):
+    def execute_sp_singleton1(self, sql: str, *params) -> Any:
         """
         Executes a stored routine with designation type "table", i.e a stored routine that is expected to select 1 row
         with 1 column.
@@ -381,7 +364,7 @@ class StaticDataLayer:
 
         :rtype: * The value of the selected column.
         """
-        cursor = StaticDataLayer.__conn.cursor()
+        cursor = self.__conn.cursor()
         cursor.execute(sql, params)
         rows = cursor.fetchall()
         cursor.close()
@@ -393,17 +376,16 @@ class StaticDataLayer:
         return rows[0][0]
 
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def rollback():
+    def rollback(self) -> None:
         """
         Rolls back the current transaction.
         See http://pymssql.org/en/stable/ref/pymssql.html#pymssql.Connection.rollback.
         """
-        StaticDataLayer.__conn.rollback()
+        self.__conn.rollback()
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def stratum_msg_handler(msgstate, severity, srvname, procname, line, msgtext):
+    def stratum_msg_handler(msgstate: str, severity: int, srvname: str, procname: str, line: int, msgtext: bin) -> None:
         """
         Custom message handler suppressing some superfluous messages.
         """
@@ -413,7 +395,7 @@ class StaticDataLayer:
             msg = msgtext.decode("utf-8")
 
             # Suppress bogus messages if flag is set.
-            if StaticDataLayer._suppress_superfluous_messages:
+            if MsSqlDataLayer._suppress_superfluous_messages:
                 # @todo Make this method more flexible by using two lists. One with strings and one on regex to
                 # suppress.
                 if msg == 'Warning: Null value is eliminated by an aggregate or other SET operation.':

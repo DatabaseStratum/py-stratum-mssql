@@ -1,9 +1,6 @@
-"""
-PyStratum
-"""
 from typing import Any, Dict
 
-from pystratum.helper.DataTypeHelper import DataTypeHelper
+from pystratum_common.helper.DataTypeHelper import DataTypeHelper
 
 
 class MsSqlDataTypeHelper(DataTypeHelper):
@@ -12,7 +9,7 @@ class MsSqlDataTypeHelper(DataTypeHelper):
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def column_type_to_python_type(self, data_type_info):
+    def column_type_to_python_type(self, data_type_info: Dict[str, Any]) -> str:
         """
         Returns the corresponding Python data type of a SQL Server data type.
 

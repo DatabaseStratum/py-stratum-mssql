@@ -3,39 +3,39 @@ PyStratum
 """
 import os
 import re
+from configparser import ConfigParser
+from typing import Any, Dict
 
-from pystratum.Constants import Constants
-from pystratum.Util import Util
+from pystratum_backend.StratumStyle import StratumStyle
+from pystratum_common.backend.CommonConstantWorker import CommonConstantWorker
+from pystratum_common.Util import Util
 
-from pystratum_mssql.MsSqlConnection import MsSqlConnection
-from pystratum_mssql.MsSqlMetadataDataLayer import MsSqlMetadataDataLayer
+from pystratum_mssql.backend.MsSqlWorker import MsSqlWorker
 
 
-class MsSqlConstants(MsSqlConnection, Constants):
+class MsSqlConstantWorker(MsSqlWorker, CommonConstantWorker):
     """
     Class for creating constants based on column widths, and auto increment columns and labels for SQL Server
     databases.
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, io):
+    def __init__(self, io: StratumStyle, config: ConfigParser):
         """
         Object constructor.
 
-        :param pystratum.style.PyStratumStyle.PyStratumStyle io: The output decorator.
+        :param io: The output decorator.
         """
-        Constants.__init__(self, io)
-        MsSqlConnection.__init__(self, io)
+        MsSqlWorker.__init__(self, io, config)
+        CommonConstantWorker.__init__(self, io, config)
 
-        self._columns = {}
+        self._columns: Dict[str, Any] = {}
         """
         All columns in the database.
-
-        :type: dict
         """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_old_columns(self):
+    def _get_old_columns(self) -> None:
         """
         Reads from file constants_filename the previous table and column names, the width of the column,
         and the constant name (if assigned) and stores this data in old_columns.
@@ -82,13 +82,13 @@ class MsSqlConstants(MsSqlConnection, Constants):
                                 self._old_columns[schema_name] = {table_name: {column_name: column_info}}
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_columns(self):
+    def _get_columns(self) -> None:
         """
         Retrieves metadata all columns in the database.
         """
-        rows = MsSqlMetadataDataLayer.get_all_table_columns()
+        rows = self._dl.get_all_table_columns()
         for row in rows:
-            row['length'] = MsSqlConstants.derive_field_length(row)
+            row['length'] = MsSqlConstantWorker.derive_field_length(row)
 
             if row['schema_name'] in self._columns:
                 if row['table_name'] in self._columns[row['schema_name']]:
@@ -102,7 +102,7 @@ class MsSqlConstants(MsSqlConnection, Constants):
                 self._columns[row['schema_name']] = {row['table_name']: {row['column_name']: row}}
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _enhance_columns(self):
+    def _enhance_columns(self) -> None:
         """
         Enhances old_columns as follows:
         If the constant name is *, is is replaced with the column name prefixed by prefix in uppercase.
@@ -123,7 +123,7 @@ class MsSqlConstants(MsSqlConnection, Constants):
                                 self._old_columns[schema_name][table_name][column_name]['constant_name'] = constant_name
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _merge_columns(self):
+    def _merge_columns(self) -> None:
         """
         Preserves relevant data in old_columns into columns.
         """
@@ -141,7 +141,7 @@ class MsSqlConstants(MsSqlConnection, Constants):
                                                  format(column['constant_name']))
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _write_columns(self):
+    def _write_columns(self) -> None:
         """
         Writes table and column names, the width of the column, and the constant name (if assigned) to
         constants_filename.
@@ -181,20 +181,18 @@ class MsSqlConstants(MsSqlConnection, Constants):
         Util.write_two_phases(self._constants_filename, content, self._io)
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_labels(self, regex):
+    def _get_labels(self) -> None:
         """
         Gets all primary key labels from the database.
-
-        :param str regex: The regular expression for columns which we want to use.
         """
-        tables = MsSqlMetadataDataLayer.get_label_tables(regex)
+        tables = self._dl.get_label_tables(self._label_regex)
 
         for table in tables:
-            rows = MsSqlMetadataDataLayer.get_labels_from_table(self._database,
-                                                                table['schema_name'],
-                                                                table['table_name'],
-                                                                table['id'],
-                                                                table['label'])
+            rows = self._dl.get_labels_from_table(table['database'],
+                                                  table['schema_name'],
+                                                  table['table_name'],
+                                                  table['id'],
+                                                  table['label'])
             for row in rows:
                 if row['label'] not in self._labels:
                     self._labels[row['label']] = row['id']
@@ -203,7 +201,7 @@ class MsSqlConstants(MsSqlConnection, Constants):
                     Exception("Duplicate label '%s'")
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _fill_constants(self):
+    def _fill_constants(self) -> None:
         """
         Merges columns and labels (i.e. all known constants) into constants.
         """
@@ -218,7 +216,7 @@ class MsSqlConstants(MsSqlConnection, Constants):
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def derive_field_length(column):
+    def derive_field_length(column: Dict[str, Any]) -> int:
         """
         Returns the width of a field based based on the data type of column.
 
@@ -327,16 +325,10 @@ class MsSqlConstants(MsSqlConnection, Constants):
                 # This is a varchar(max) data type.
                 return 2147483647
 
+        if data_type == 'sysname':
+            return column['max_length']
+
+        print(column)
         raise Exception("Unexpected data type '{0}'".format(data_type))
-
-    # ------------------------------------------------------------------------------------------------------------------
-    def _read_configuration_file(self, config_filename):
-        """
-        Reads parameters from the configuration file.
-
-        :param str config_filename: The name of the configuration file.
-        """
-        Constants._read_configuration_file(self, config_filename)
-        MsSqlConnection._read_configuration_file(self, config_filename)
 
 # ----------------------------------------------------------------------------------------------------------------------

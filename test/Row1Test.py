@@ -1,11 +1,6 @@
-"""
-PyStratum
-"""
-from pystratum.exception.ResultException import ResultException
+from pystratum_middle.exception.ResultException import ResultException
 
-from pystratum_test.TestDataLayer import TestDataLayer
-
-from pystratum_test.StratumTestCase import StratumTestCase
+from test.StratumTestCase import StratumTestCase
 
 
 class Row1Test(StratumTestCase):
@@ -14,7 +9,7 @@ class Row1Test(StratumTestCase):
         """
         Stored routine with designation type row1 must return 1 row and 1 row only.
         """
-        ret = TestDataLayer.tst_test_row1(1)
+        ret = self._dl.tst_test_row1(1)
         self.assertIsInstance(ret, dict)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -23,7 +18,7 @@ class Row1Test(StratumTestCase):
         An exception must be thrown when a stored routine with designation type row1 returns 0 rows.
         """
         with self.assertRaises(Exception):
-            TestDataLayer.tst_test_row1(0)
+            self._dl.tst_test_row1(0)
 
     # ------------------------------------------------------------------------------------------------------------------
     def test03(self):
@@ -31,7 +26,7 @@ class Row1Test(StratumTestCase):
         An exception must be thrown when a stored routine with designation type row1 returns more than 1 rows.
         """
         with self.assertRaises(Exception):
-            TestDataLayer.tst_test_row1(2)
+            self._dl.tst_test_row1(2)
 
     # ------------------------------------------------------------------------------------------------------------------
     def test11a(self):
@@ -39,7 +34,7 @@ class Row1Test(StratumTestCase):
         Test with query selecting 1 row with arguments.
         """
         sql = 'select %s as "hello" from [dbo].[TST_FOO2] where tst_c00 <= %d'
-        ret = TestDataLayer.execute_row1(sql, ('hello', 1))
+        ret = self._dl.execute_row1(sql, ('hello', 1))
         self.assertIsInstance(ret, dict)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -48,7 +43,7 @@ class Row1Test(StratumTestCase):
         Test with query selecting 1 row without arguments.
         """
         sql = 'select * from [dbo].[TST_FOO2] where tst_c00 <= 1'
-        ret = TestDataLayer.execute_row1(sql)
+        ret = self._dl.execute_row1(sql)
         self.assertIsInstance(ret, dict)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -58,7 +53,7 @@ class Row1Test(StratumTestCase):
         """
         with self.assertRaises(ResultException):
             sql = 'select * from [dbo].[TST_FOO2] where tst_c00 <= 0'
-            TestDataLayer.execute_row1(sql)
+            self._dl.execute_row1(sql)
 
     # ------------------------------------------------------------------------------------------------------------------
     def test13(self):
@@ -67,7 +62,6 @@ class Row1Test(StratumTestCase):
         """
         with self.assertRaises(ResultException):
             sql = 'select * from [dbo].[TST_FOO2] where tst_c00 <= 2'
-            TestDataLayer.execute_row1(sql)
-
+            self._dl.execute_row1(sql)
 
 # ----------------------------------------------------------------------------------------------------------------------

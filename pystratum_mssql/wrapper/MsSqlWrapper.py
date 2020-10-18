@@ -1,18 +1,16 @@
-"""
-PyStratum
-"""
-import abc
+from abc import ABC
+from typing import Any, Dict, List
 
-from pystratum.wrapper.Wrapper import Wrapper
+from pystratum_common.wrapper.Wrapper import Wrapper
 
 
-class MsSqlWrapper(Wrapper):
+class MsSqlWrapper(Wrapper, ABC):
     """
     Parent class for wrapper method generators for stored procedures and functions.
     """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def is_lob_parameter(self, parameters):
+    def is_lob_parameter(self, parameters: List[Dict[str, Any]]) -> bool:
         """
         Returns True of one of the parameters is a BLOB or CLOB. Otherwise, returns False.
 
@@ -62,11 +60,10 @@ class MsSqlWrapper(Wrapper):
         return has_blob
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _write_routine_method_without_lob(self, routine):
+    def _write_routine_method_without_lob(self, routine: Dict[str, Any]) -> str:
 
         self._write_line()
         self._write_separator()
-        self._write_line('@staticmethod')
         self._write_line(
                 'def {0!s}({1!s}):'.format(str(routine['routine_base_name']), str(self._get_wrapper_args(routine))))
         self._write_result_handler(routine)
@@ -74,15 +71,7 @@ class MsSqlWrapper(Wrapper):
         return self._code
 
     # ------------------------------------------------------------------------------------------------------------------
-    @abc.abstractmethod
-    def _write_result_handler(self, routine):
-        """
-        Generates code for calling the stored routine in the wrapper method.
-        """
-        raise NotImplementedError()
-
-    # ------------------------------------------------------------------------------------------------------------------
-    def _generate_command(self, routine):
+    def _generate_command(self, routine: Dict[str, Any]) -> str:
         """
         Returns a SQL-statement for calling a stored routine.
 
@@ -122,7 +111,7 @@ class MsSqlWrapper(Wrapper):
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def _get_parameter_format_specifier(data_type):
+    def _get_parameter_format_specifier(data_type: str) -> str:
         """
         Returns the appropriate format specifier for a parameter type.
 
@@ -168,7 +157,7 @@ class MsSqlWrapper(Wrapper):
 
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def _get_re_type(data_type):
+    def _get_re_type(data_type: str) -> str:
 
         lob = '%s'
 

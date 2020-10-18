@@ -1,8 +1,3 @@
-"""
-PyStratum
-"""
-
-
 class C:
     """
     Namespace for constants.

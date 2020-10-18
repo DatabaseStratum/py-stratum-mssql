@@ -1,9 +1,4 @@
-"""
-PyStratum
-"""
-from pystratum_test.TestDataLayer import TestDataLayer
-
-from pystratum_test.StratumTestCase import StratumTestCase
+from test.StratumTestCase import StratumTestCase
 
 
 class Singleton1Test(StratumTestCase):
@@ -12,7 +7,7 @@ class Singleton1Test(StratumTestCase):
         """
         Stored routine with designation type singleton1 must return 1 value and 1 value only.
         """
-        ret = TestDataLayer.tst_test_singleton1(1)
+        ret = self._dl.tst_test_singleton1(1)
         self.assertEqual(1, ret)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -22,7 +17,7 @@ class Singleton1Test(StratumTestCase):
         @expectedException Exception
         """
         with self.assertRaises(Exception):
-            TestDataLayer.tst_test_singleton1(0)
+            self._dl.tst_test_singleton1(0)
 
     # ------------------------------------------------------------------------------------------------------------------
     def test3(self):
@@ -31,6 +26,6 @@ class Singleton1Test(StratumTestCase):
         @expectedException Exception
         """
         with self.assertRaises(Exception):
-            TestDataLayer.tst_test_singleton1(2)
+            self._dl.tst_test_singleton1(2)
 
 # ----------------------------------------------------------------------------------------------------------------------

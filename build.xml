@@ -1,7 +1,6 @@
-<project name="PyStratum MSSQL" default="build" basedir=".">
+<project name="PyStratum-MSSQL" default="build" basedir=".">
     <taskdef name="readSemanticVersion" classname="vendor.setbased.phing-extensions.src.Task.ReadSemanticVersionTask"/>
     <property name="BUILD_DIR" value="./build"/>
-    <property name="VERSION" value="0.0.0"/>
 
     <!-- Run composer update and executes various other updates -->
     <target name="composer-update">
@@ -43,11 +42,13 @@
     </target>
 
     <!-- All steps for releasing a new version -->
-    <target name="new-version" depends="version,dist,upload,docs"/>
+    <target name="release" depends="version,dist,upload,docs"/>
 
-    <!-- Checks the code with pylint -->
-    <target name="pylint">
-        <exec command="pylint --rcfile pylintrc pystratum" passthru="true"/>
+    <!-- Runs all unit tests for MySQL-->
+    <target name="unit">
+        <delete file="test/etc/routines.json" quiet="true"/>
+        <exec command="coverage3 run -m unittest discover -s test -p \*Test.py" passthru="true" checkreturn="true"/>
+        <exec command="coverage3 html" passthru="true" checkreturn="true"/>
     </target>
 
     <!-- Generates the documentation -->

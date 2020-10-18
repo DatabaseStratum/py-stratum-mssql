@@ -20,10 +20,10 @@ pystratum\_mssql.MsSqlConnection module
    :undoc-members:
    :show-inheritance:
 
-pystratum\_mssql.MsSqlConstants module
+pystratum\_mssql.MsSqlConstantWorker module
 --------------------------------------
 
-.. automodule:: pystratum_mssql.MsSqlConstants
+.. automodule:: pystratum_mssql.MsSqlConstantWorker
    :members:
    :undoc-members:
    :show-inheritance:
@@ -36,10 +36,10 @@ pystratum\_mssql.MsSqlMetadataDataLayer module
    :undoc-members:
    :show-inheritance:
 
-pystratum\_mssql.MsSqlRoutineLoader module
+pystratum\_mssql.MsSqlRoutineLoaderWorker module
 ------------------------------------------
 
-.. automodule:: pystratum_mssql.MsSqlRoutineLoader
+.. automodule:: pystratum_mssql.MsSqlRoutineLoaderWorker
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,18 +52,18 @@ pystratum\_mssql.MsSqlRoutineLoaderHelper module
    :undoc-members:
    :show-inheritance:
 
-pystratum\_mssql.MsSqlRoutineWrapperGenerator module
+pystratum\_mssql.MsSqlRoutineWrapperGeneratorWorker module
 ----------------------------------------------------
 
-.. automodule:: pystratum_mssql.MsSqlRoutineWrapperGenerator
+.. automodule:: pystratum_mssql.MsSqlRoutineWrapperGeneratorWorker
    :members:
    :undoc-members:
    :show-inheritance:
 
-pystratum\_mssql.StaticDataLayer module
+pystratum\_mssql.MsSqlDataLayer module
 ---------------------------------------
 
-.. automodule:: pystratum_mssql.StaticDataLayer
+.. automodule:: pystratum_mssql.MsSqlDataLayer
    :members:
    :undoc-members:
    :show-inheritance:

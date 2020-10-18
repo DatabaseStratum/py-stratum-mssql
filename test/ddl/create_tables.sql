@@ -1,15 +1,6 @@
-/*================================================================================*/
-/* DDL SCRIPT                                                                     */
-/*================================================================================*/
-/*  Title    :                                                                    */
-/*  FileName : py-stratum.ecm                                                     */
-/*  Platform : SQL Server 2014                                                    */
-/*  Version  : Concept                                                            */
-/*  Date     : zondag 22 maart 2015                                               */
-/*================================================================================*/
-/*================================================================================*/
-/* CREATE TABLES                                                                  */
-/*================================================================================*/
+IF OBJECT_ID('dbo.TST_FOO1', 'U') IS NOT NULL
+  DROP TABLE dbo.[TST_FOO1]
+;
 
 CREATE TABLE [TST_FOO1] (
   [tst_bigint] BIGINT,
@@ -42,16 +33,11 @@ CREATE TABLE [TST_FOO1] (
   [tst_geography] GEOGRAPHY,
   [tst_geometry] GEOMETRY
 )
-GO
+;
 
-EXECUTE sp_addextendedproperty 'MS_Description', 'TODO:
-* cursor
-* timestamp
-* hierarchy
-* uniqieidentifier
-* sql_variant
-* table', 'SCHEMA', '', 'TABLE', 'TST_FOO1', NULL, NULL
-GO
+IF OBJECT_ID('dbo.TST_FOO2', 'U') IS NOT NULL
+  DROP TABLE dbo.[TST_FOO2]
+;
 
 CREATE TABLE [TST_FOO2] (
   [tst_c00] INT NOT NULL,
@@ -61,7 +47,11 @@ CREATE TABLE [TST_FOO2] (
   [tst_c04] VARCHAR(10),
   CONSTRAINT [PK_TST_FOO2] PRIMARY KEY ([tst_c00])
 )
-GO
+;
+
+IF OBJECT_ID('dbo.TST_LABEL', 'U') IS NOT NULL
+  DROP TABLE dbo.[TST_LABEL]
+;
 
 CREATE TABLE [TST_LABEL] (
   [tst_id] INT IDENTITY(1,1) NOT NULL,
@@ -69,7 +59,11 @@ CREATE TABLE [TST_LABEL] (
   [tst_label] VARCHAR(40),
   CONSTRAINT [PK_TST_LABEL] PRIMARY KEY ([tst_id])
 )
-GO
+;
+
+IF OBJECT_ID('dbo.TST_TABLE', 'U') IS NOT NULL
+  DROP TABLE dbo.[TST_TABLE]
+;
 
 CREATE TABLE [TST_TABLE] (
   [tst_c00] VARCHAR(20) NOT NULL,
@@ -81,4 +75,4 @@ CREATE TABLE [TST_TABLE] (
   [tst_c06] INT,
   CONSTRAINT [PK_TST_TABLE] PRIMARY KEY ([tst_c00])
 )
-GO
+;

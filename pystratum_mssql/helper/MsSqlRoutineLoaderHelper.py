@@ -1,13 +1,12 @@
-"""
-PyStratum
-"""
 import re
 
-from pystratum.RoutineLoaderHelper import RoutineLoaderHelper
-from pystratum.exception.LoaderException import LoaderException
+from pystratum_backend.StratumStyle import StratumStyle
+from pystratum_common.exception.LoaderException import LoaderException
+from pystratum_common.helper.DataTypeHelper import DataTypeHelper
+from pystratum_common.helper.RoutineLoaderHelper import RoutineLoaderHelper
 
-from pystratum_mssql.MsSqlMetadataDataLayer import MsSqlMetadataDataLayer
 from pystratum_mssql.helper.MsSqlDataTypeHelper import MsSqlDataTypeHelper
+from pystratum_mssql.MsSqlMetadataDataLayer import MsSqlMetadataDataLayer
 
 
 class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
@@ -17,12 +16,13 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
 
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self,
+                 io: StratumStyle,
+                 dl: MsSqlMetadataDataLayer,
                  routine_filename,
                  routine_file_encoding,
                  pystratum_old_metadata,
                  replace_pairs,
-                 rdbms_old_metadata,
-                 io):
+                 rdbms_old_metadata):
         """
         Object constructor.
 
@@ -34,29 +34,30 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         :param pystratum.style.PyStratumStyle.PyStratumStyle io: The output decorator.
         """
         RoutineLoaderHelper.__init__(self,
+                                     io,
                                      routine_filename,
                                      routine_file_encoding,
                                      pystratum_old_metadata,
                                      replace_pairs,
-                                     rdbms_old_metadata,
-                                     io)
+                                     rdbms_old_metadata)
 
-        self._routine_base_name = None
+        self._routine_base_name: str = ''
         """
         The name of the stored routine without schema name.
-
-        :type: str
         """
 
-        self._routines_schema_name = None
+        self._routines_schema_name: str = ''
         """
         The name of the schema of the stored routine.
+        """
 
-        :type: str
+        self._dl: MsSqlMetadataDataLayer = dl
+        """
+        The metadata layer.
         """
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _drop_routine(self):
+    def _drop_routine(self) -> None:
         """
         Drops the stored routine if it exists.
         """
@@ -68,19 +69,19 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
             else:
                 raise Exception("Unknown routine type '{0}'.".format(self._rdbms_old_metadata['routine_type']))
 
-            MsSqlMetadataDataLayer.drop_stored_routine(routine_type,
-                                                       self._rdbms_old_metadata['schema_name'],
-                                                       self._routine_base_name)
+            self._dl.drop_stored_routine(routine_type,
+                                         self._rdbms_old_metadata['schema_name'],
+                                         self._routine_base_name)
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_bulk_insert_table_columns_info(self):
+    def _get_bulk_insert_table_columns_info(self) -> None:
         """
         Gets the column names and column types of the current table for bulk insert.
         """
         raise NotImplementedError()
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_data_type_helper(self):
+    def _get_data_type_helper(self) -> DataTypeHelper:
         """
         Returns a data type helper object for SQL Server.
 
@@ -89,7 +90,7 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         return MsSqlDataTypeHelper()
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_name(self):
+    def _get_name(self) -> None:
         """
         Extracts the name of the stored routine and the stored routine type (i.e. procedure or function) source.
         """
@@ -112,12 +113,12 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
                                   format(self._source_filename))
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _get_routine_parameters_info(self):
+    def _get_routine_parameters_info(self) -> None:
         """
         Retrieves information about the stored routine parameters from the meta data of SQL Server.
         """
-        routine_parameters = MsSqlMetadataDataLayer.get_routine_parameters(self._routines_schema_name,
-                                                                           self._routine_base_name)
+        routine_parameters = self._dl.get_routine_parameters(self._routines_schema_name,
+                                                             self._routine_base_name)
         if len(routine_parameters) != 0:
             for routine_parameter in routine_parameters:
                 if routine_parameter['parameter_name']:
@@ -131,7 +132,7 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
                                              'data_type_descriptor': value})
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _is_start_of_stored_routine(self, line):
+    def _is_start_of_stored_routine(self, line: str) -> bool:
         """
         Returns True if a line is the start of the code of the stored routine.
 
@@ -142,7 +143,7 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         return re.match(r'^\s*create\s+(procedure|function)', line, re.IGNORECASE) is not None
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _is_start_of_stored_routine_body(self, line):
+    def _is_start_of_stored_routine_body(self, line: str) -> bool:
         """
         Returns True if a line is the start of the body of the stored routine.
 
@@ -153,7 +154,7 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         return re.match(r'^\s*as', line, re.IGNORECASE) is not None
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _load_routine_file(self):
+    def _load_routine_file(self) -> None:
         """
         Loads the stored routine into the SQL Server instance.
         """
@@ -190,10 +191,11 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
             else:
                 self._drop_routine()
 
-        MsSqlMetadataDataLayer.execute_none(routine_source)
+        self._dl.execute_none(routine_source)
+        self._dl.commit()
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _must_reload(self):
+    def _must_reload(self) -> bool:
         """
         Returns True if the source file must be load or reloaded. Otherwise returns False.
 
@@ -216,7 +218,7 @@ class MsSqlRoutineLoaderHelper(RoutineLoaderHelper):
         return False
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _update_metadata(self):
+    def _update_metadata(self) -> None:
         """
         Updates the metadata of the stored routine.
         """

@@ -1,12 +1,14 @@
 **/__pycache__/
 /.coverage
 /.idea/
+/PyStratum_MSSQL.egg-info/
 /bin/phing
 /build/
 /composer.lock
 /dist/
 /docs/_build/
-/pystratum_test/etc/columns.txt
-/pystratum_test/etc/routines.json
-/pystratum_test/html/
+/test/etc/columns.txt
+/test/etc/routines.json
+/test/html/
 /vendor/
+/venv/

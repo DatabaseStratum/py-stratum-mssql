@@ -1,10 +1,6 @@
-"""
-PyStratum
-"""
 import os
 
-from pystratum_test.TestDataLayer import TestDataLayer
-from pystratum_test.StratumTestCase import StratumTestCase
+from test.StratumTestCase import StratumTestCase
 
 
 class MagicConstantTest(StratumTestCase):
@@ -13,7 +9,7 @@ class MagicConstantTest(StratumTestCase):
         """
         Test constant __ROUTINE__. Must return name of routine.
         """
-        ret = TestDataLayer.tst_magic_constant01()
+        ret = self._dl.tst_magic_constant01()
         self.assertEqual('dbo.tst_magic_constant01', ret)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -21,7 +17,7 @@ class MagicConstantTest(StratumTestCase):
         """
         Test constant __LINE__. Must return line number in the source code.
         """
-        ret = TestDataLayer.tst_magic_constant02()
+        ret = self._dl.tst_magic_constant02()
         self.assertEqual(7, int(ret))
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -32,7 +28,7 @@ class MagicConstantTest(StratumTestCase):
         dir_cur_file = os.path.dirname(os.path.abspath(__file__))
         path = os.path.realpath(dir_cur_file + "/psql/dbo.tst_magic_constant03.psql")
         filename = os.path.realpath(path)
-        ret = TestDataLayer.tst_magic_constant03()
+        ret = self._dl.tst_magic_constant03()
         self.assertEqual(filename, ret)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -42,7 +38,7 @@ class MagicConstantTest(StratumTestCase):
         """
         dir_cur_file = os.path.dirname(os.path.abspath(__file__))
         dir_name = os.path.realpath(dir_cur_file + '/psql')
-        ret = TestDataLayer.tst_magic_constant04()
+        ret = self._dl.tst_magic_constant04()
         self.assertEqual(dir_name, ret)
 
 # ----------------------------------------------------------------------------------------------------------------------
