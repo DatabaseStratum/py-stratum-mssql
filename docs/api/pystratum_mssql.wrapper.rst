@@ -100,7 +100,6 @@ pystratum\_mssql.wrapper.MsSqlWrapper module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

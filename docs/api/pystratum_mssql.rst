@@ -5,25 +5,35 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
+   pystratum_mssql.backend
    pystratum_mssql.helper
    pystratum_mssql.wrapper
 
 Submodules
 ----------
 
-pystratum\_mssql.MsSqlConnection module
----------------------------------------
+pystratum\_mssql.MsSqlConnector module
+--------------------------------------
 
-.. automodule:: pystratum_mssql.MsSqlConnection
+.. automodule:: pystratum_mssql.MsSqlConnector
    :members:
    :undoc-members:
    :show-inheritance:
 
-pystratum\_mssql.MsSqlConstantWorker module
+pystratum\_mssql.MsSqlDataLayer module
 --------------------------------------
 
-.. automodule:: pystratum_mssql.MsSqlConstantWorker
+.. automodule:: pystratum_mssql.MsSqlDataLayer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pystratum\_mssql.MsSqlDefaultConnector module
+---------------------------------------------
+
+.. automodule:: pystratum_mssql.MsSqlDefaultConnector
    :members:
    :undoc-members:
    :show-inheritance:
@@ -35,39 +45,6 @@ pystratum\_mssql.MsSqlMetadataDataLayer module
    :members:
    :undoc-members:
    :show-inheritance:
-
-pystratum\_mssql.MsSqlRoutineLoaderWorker module
-------------------------------------------
-
-.. automodule:: pystratum_mssql.MsSqlRoutineLoaderWorker
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pystratum\_mssql.MsSqlRoutineLoaderHelper module
-------------------------------------------------
-
-.. automodule:: pystratum_mssql.MsSqlRoutineLoaderHelper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pystratum\_mssql.MsSqlRoutineWrapperGeneratorWorker module
-----------------------------------------------------
-
-.. automodule:: pystratum_mssql.MsSqlRoutineWrapperGeneratorWorker
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pystratum\_mssql.MsSqlDataLayer module
----------------------------------------
-
-.. automodule:: pystratum_mssql.MsSqlDataLayer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Module contents
 ---------------

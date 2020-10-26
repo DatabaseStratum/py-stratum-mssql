@@ -1,5 +1,8 @@
 /**
  * Test for designation type none.
+ *
+ * @param p_tst_test  First test parameter.
+ * @param p_tst_label Second test parameter.
  */
 create procedure dbo.tst_test_none0
   @p_tst_test  @dbo.tst_label.tst_test%type@,

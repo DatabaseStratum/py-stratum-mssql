@@ -12,6 +12,13 @@ pystratum\_mssql.helper.MsSqlDataTypeHelper module
    :undoc-members:
    :show-inheritance:
 
+pystratum\_mssql.helper.MsSqlRoutineLoaderHelper module
+-------------------------------------------------------
+
+.. automodule:: pystratum_mssql.helper.MsSqlRoutineLoaderHelper
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------

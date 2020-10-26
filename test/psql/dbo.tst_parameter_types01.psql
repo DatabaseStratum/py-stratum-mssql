@@ -1,26 +1,29 @@
 /**
  * Test for all possible types of parameters excluding LOB's.
  *
- * @param @p_bigint         Test parameter for bigint.
- * @param @p_bit            Test parameter for bit.
- * @param @p_char           Test parameter for char.
- * @param @p_date           Test parameter for date.
- * @param @p_datetime       Test parameter for datetime.
- * @param @p_datetime2      Test parameter for datetime2.
- * @param @p_datetimeoffset Test parameter for datetimeoffset.
- * @param @p_decimal        Test parameter for decimal.
- * @param @p_float          Test parameter for float.
- * @param @p_int            Test parameter for int.
- * @param @p_money          Test parameter for money.
- * @param @p_nchar          Test parameter for nchar.
- * @param @p_numeric        Test parameter for numeric.
- * @param @p_real           Test parameter for real.
- * @param @p_smalldatetime  Test parameter for smalldatetime.
- * @param @p_smallint       Test parameter for smallint.
- * @param @p_smallmoney     Test parameter for smallmoney.
- * @param @p_time           Test parameter for time.
- * @param @p_tinyint        Test parameter for tinyint.
- * @param @p_varchar        Test parameter for varchar.
+ * @param p_tst_bigint         Test parameter for bigint.
+ * @param p_tst_binary         Test parameter for binary.
+ * @param p_tst_bit            Test parameter for bit.
+ * @param p_tst_char           Test parameter for char.
+ * @param p_tst_date           Test parameter for date.
+ * @param p_tst_datetime       Test parameter for datetime.
+ * @param p_tst_datetime2      Test parameter for datetime2.
+ * @param p_tst_datetimeoffset Test parameter for datetimeoffse.
+ * @param p_tst_decimal        Test parameter for decimal.
+ * @param p_tst_float          Test parameter for float.
+ * @param p_tst_int            Test parameter for int.
+ * @param p_tst_money          Test parameter for money.
+ * @param p_tst_nchar          Test parameter for nchar.
+ * @param p_tst_numeric        Test parameter for numeric.
+ * @param p_tst_nvarchar       Test parameter for nvarchar.
+ * @param p_tst_real           Test parameter for real.
+ * @param p_tst_smalldatetime  Test parameter for smalldatetime.
+ * @param p_tst_smallint       Test parameter for smallint.
+ * @param p_tst_smallmoney     Test parameter for smallmoney.
+ * @param p_tst_time           Test parameter for time.
+ * @param p_tst_tinyint        Test parameter for tinyint.
+ * @param p_tst_varbinary      Test parameter for varbinary.
+ * @param p_tst_varchar        Test parameter for varchar.
  */
 create procedure dbo.tst_parameter_types01
   @p_tst_bigint             @dbo.tst_foo1.tst_bigint%type@,

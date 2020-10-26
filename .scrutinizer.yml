@@ -3,16 +3,6 @@ filter:
     - test/*
 
 build:
-  dependencies:
-    before:
-      - pip3 install cleo==0.6.8
-      - pip3 install coverage
-      - pip3 install pymssql
-      - pip3 install PyStratum-Backend
-      - pip3 install PyStratum-Cli
-      - pip3 install PyStratum-Common
-      - pip3 install PyStratum-Middle
-
   nodes:
     analysis:
       tests:

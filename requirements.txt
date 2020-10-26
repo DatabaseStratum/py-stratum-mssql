@@ -1,0 +1,11 @@
+# Must be aligned with setup.py.
+pymssql<3, >=2.1.5
+PyStratum-Backend<2, >=1.0.2
+PyStratum-Common<2, >=1.0.3
+PyStratum-Middle<2, >=1.0.0
+
+# For development only.
+PyStratum-Cli<2, >=1.0.4
+coverage<6, >=5.3
+Sphinx<4, >=3.2.1
+sphinx-rtd-theme<0.6, >=0.5.0
